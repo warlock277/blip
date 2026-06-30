@@ -1,7 +1,7 @@
-# cloudflared ingress for the homelab Pulse monitoring tunnel.
-# Runs on CT 106 (192.168.0.220) — Docker host on the LAN, reaches every .x origin.
+# cloudflared ingress for the homelab Blip monitoring tunnel.
+# Runs on a Docker host on your LAN that can reach every origin you want to probe.
 #
-# Setup (run on CT 106, see README.md in this dir):
+# Setup (run on that host, see README.md in this dir):
 #   1. cloudflared tunnel login
 #   2. cloudflared tunnel create homelab        # prints <TUNNEL_ID>, writes creds json
 #   3. put <TUNNEL_ID> below + mount creds, then `cloudflared tunnel route dns` per host
@@ -13,27 +13,16 @@ tunnel: REPLACE_WITH_TUNNEL_ID
 credentials-file: /home/nonroot/.cloudflared/REPLACE_WITH_TUNNEL_ID.json
 
 ingress:
-  - hostname: pve1.akashghuri.xyz
-    service: https://192.168.0.158:8006
+  - hostname: pve.example.com
+    service: https://192.168.1.10:8006
     originRequest:
       noTLSVerify: true
 
-  - hostname: pve2.akashghuri.xyz
-    service: https://192.168.0.114:8006
-    originRequest:
-      noTLSVerify: true
+  - hostname: npm.example.com
+    service: http://192.168.1.20:81
 
-  - hostname: npm.akashghuri.xyz
-    service: http://192.168.0.170:81
-
-  - hostname: openclaw.akashghuri.xyz
-    service: http://192.168.0.220:18789
-
-  - hostname: beszel-a.akashghuri.xyz
-    service: http://192.168.0.220:8090
-
-  - hostname: beszel-b.akashghuri.xyz
-    service: http://192.168.0.158:8090
+  - hostname: app.example.com
+    service: http://192.168.1.30:8090
 
   # Catch-all: anything else 404s (required final rule).
   - service: http_status:404

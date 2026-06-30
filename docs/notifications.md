@@ -1,9 +1,9 @@
 # Notifications
 
-Pulse can alert you over **Telegram, Email (Resend), Discord, Slack, and a
+Blip can alert you over **Telegram, Email (Resend), Discord, Slack, and a
 generic webhook**. Channels are declared under `channels:` in
-`pulse.config.yaml`; their secrets are provided as `${ENV_VAR}` references and
-stored as GitHub Actions secrets.
+`blip.config.yaml`; their secrets are provided as `${ENV_VAR}` references and
+stored as Worker secrets (`wrangler secret put <NAME>`).
 
 This page covers how to get each credential, the generic webhook payload, and how
 event **routing** and **flapping suppression** work.
@@ -59,7 +59,7 @@ channels:
   - id: email-ops
     type: email
     apiKey: ${RESEND_API_KEY}
-    from: "Pulse <alerts@yourdomain.com>"
+    from: "Blip <alerts@yourdomain.com>"
     to: ["ops@yourdomain.com", "oncall@yourdomain.com"]
     events: [down, up, ssl, domain]
     minDownMinutes: 5
@@ -116,7 +116,7 @@ channels:
     url: ${PAGER_WEBHOOK_URL}
     method: POST                 # POST (default) or PUT
     headers:
-      X-Pulse-Source: "ci"
+      X-Blip-Source: "ci"
     events: [down]
     sites: [acme-api]
 ```
@@ -167,7 +167,7 @@ types ([`types.ts`](../packages/shared/src/types.ts)): `EventType`, `Status`,
 
 ## Routing & flapping
 
-Pulse decides which channels fire for an event using a small set of rules:
+Blip decides which channels fire for an event using a small set of rules:
 
 1. **Per-site override.** If a site has a `notify: [channelId, …]` list, **only**
    those channels are considered for that site. Global channels are skipped.

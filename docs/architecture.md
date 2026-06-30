@@ -1,138 +1,142 @@
 # Architecture
 
-Pulse has no servers and no database. It's three small pieces wired together by
-GitHub and Cloudflare's free tiers.
+Blip is **one Cloudflare Worker**. It has no server to run and no database to
+host — the Worker probes your sites on a cron, stores results in Cloudflare D1
+(managed SQLite), and serves the dashboard + status page from the same URL.
 
 ```
-                         pulse.config.yaml
-                                │
+                         blip.config.yaml
+                                │  (embedded into the Worker at build time)
                                 ▼
         ┌──────────────────────────────────────────────┐
-        │  GitHub Actions  (cron: */5 * * * *)          │
-        │  @pulse/engine — probes every site            │
-        │   • HTTP / TCP / SSL / domain checks          │
+        │              Cloudflare Worker                │
+        │                                               │
+        │  scheduled()  (cron: */5 * * * *)             │
+        │   • probe each site: HTTP / TCP / SSL / domain│
         │   • keyword + JSON assertions                 │
-        │   • computes status, rollups, incidents       │
-        └───────────────┬──────────────────┬───────────┘
-                        │                  │
-              writes & commits        sends alerts
-                        │                  │
-                        ▼                  ▼
-        ┌───────────────────────┐   Telegram · Email
-        │  /data  (JSON in repo) │   Discord · Slack
-        │   summary.json         │   generic webhook
-        │   history/<id>.json    │
-        │   incidents.json       │
-        │   state.json           │
-        │   permissions.json     │
-        └───────────┬───────────┘
-                    │ push to main triggers deploy
-                    ▼
-        ┌───────────────────────────────────────────┐
-        │  GitHub Actions  (deploy.yml)              │
-        │  build @pulse/dashboard → copy /data in    │
-        │  → deploy to Cloudflare Pages              │
-        └───────────────┬───────────────────────────┘
-                        ▼
-              Cloudflare Pages (static SPA)
-                        │
-                        ▼
-              Cloudflare Access (auth at the edge)
-                        │
-                        ▼
-              Users · status page · admin dashboard
+        │   • compute status, rollups, incidents        │
+        │   • append to D1 + precompute JSON blobs       │
+        │   • send alerts ───────────────┐              │
+        │                                │              │
+        │  fetch()                       │              │
+        │   • /data/*.json  ← from D1     │              │
+        │   • /auth/*       login/session│              │
+        │   • everything else ← dashboard SPA (ASSETS)  │
+        └──────────────┬─────────────────┼─────────────┘
+                       │                 ▼
+                       ▼          Telegram · Email · Discord
+        ┌──────────────────────┐  Slack · generic webhook
+        │   Cloudflare D1       │
+        │   points (raw)        │
+        │   kv  (JSON blobs)    │
+        └──────────────────────┘
+                       │
+                       ▼
+        Users · status page · admin dashboard
+        (RBAC + password auth, enforced server-side)
 ```
 
 ## The pieces
 
-### 1. Monitoring engine — `@pulse/engine`
+### 1. Monitoring + serving — `@blip/worker`
 
-A TypeScript program run with `tsx` on GitHub Actions every 5 minutes
-([`monitor.yml`](../.github/workflows/monitor.yml)). On each run it:
+A single Cloudflare Worker ([`packages/worker`](../packages/worker/README.md))
+with two entry points:
 
-1. Loads and validates `pulse.config.yaml` (zod schema, `${ENV_VAR}`
-   interpolation, derives site ids via `slugify`).
-2. Probes each site concurrently: HTTP (status/keyword/JSON/timing), TCP
-   connect, TLS-cert expiry, and domain-registration expiry.
+**`scheduled()`** runs on the cron trigger (every 5 minutes). On each tick it:
+
+1. Reads the config embedded at build time (the Worker has no filesystem, so
+   `scripts/gen-config.mjs` parses `blip.config.yaml` and writes
+   `src/config.generated.ts`; `${ENV_VAR}` refs resolve from Worker secrets at
+   runtime).
+2. Probes each site: HTTP (status/keyword/JSON/timing), TCP connect, TLS-cert
+   expiry, and domain-registration expiry. SSL/domain probes are slow and
+   rate-limited, so they refresh only every `SSL_REFRESH_HOURS` (default 6h) and
+   are cached between ticks.
 3. Resolves each result to `up` / `degraded` / `down`, applying retries and the
    degraded threshold.
-4. Appends to history, rolls older points up into per-day summaries, opens/closes
-   incidents, and rebuilds `summary.json`.
+4. Appends raw points to D1, rolls older points into daily summaries, opens/closes
+   incidents, and precomputes the `summary` / `history:<id>` / `incidents` blobs.
 5. Sends notifications for state transitions through the configured channels.
-6. Commits the changed JSON back to the repo (`[skip ci]` so it doesn't trigger
-   CI), guarded by `git diff --quiet` so empty runs don't create commits.
 
-### 2. Data store — `/data` (JSON in Git)
+**`fetch()`** serves HTTP. `/data/*.json` is served live from D1, `/auth/*`
+handles login/session, and everything else falls through to the static dashboard
+SPA. (`run_worker_first` in `wrangler.toml` makes the Worker handle `/data/*` and
+`/auth/*` before the static assets, so the JSON API is never shadowed.)
 
-No database. The committed JSON files **are** the database. Their shapes are
-defined once in [`packages/shared/src/types.ts`](../packages/shared/src/types.ts)
-and shared by both the engine (writer) and dashboard (reader).
+### 2. Data store — Cloudflare D1
 
-| File                     | Type           | Purpose |
-|--------------------------|----------------|---------|
-| `data/summary.json`      | `Summary`      | The dashboard's primary fetch: totals, groups, per-site status + uptime, recent incidents. |
-| `data/history/<id>.json` | `SiteHistory`  | Per-site raw points (capped at `maxHistoryPoints`) + daily rollups for long-range graphs. |
-| `data/incidents.json`    | `Incident[]`   | Full incident log. |
-| `data/state.json`        | engine-internal| Cross-run state (last status, open incidents, flapping timers). |
-| `data/permissions.json`  | `Permissions`  | RBAC map consumed by the dashboard. |
+No database to host. D1 is Cloudflare's managed SQLite, bound to the Worker as
+`DB`. Two tables ([`schema.sql`](../packages/worker/schema.sql)):
 
-Using Git as the store gives you a free, append-only **audit trail** — every
-status change is a commit you can diff and revert.
+| Table    | Purpose |
+|----------|---------|
+| `points` | Raw per-site history points (capped per site, then rolled up daily). |
+| `kv`     | JSON state + precomputed blobs: `summary`, `history:<id>`, `incidents`. |
 
-### 3. Dashboard — `@pulse/dashboard`
+The `/data/*.json` the dashboard fetches is byte-shape-compatible with the
+`Summary`, `SiteHistory`, and `Incident[]` types in
+[`packages/shared/src/types.ts`](../packages/shared/src/types.ts), so the
+dashboard renders unchanged regardless of where the bytes come from.
 
-A static React + Vite + TypeScript SPA. At runtime it `fetch`es the `/data/*.json`
-files and renders the overview, per-site detail (24h/7d/30d/90d graphs), incident
-history, and public status page. There's no backend — the deploy step copies
-`/data` into the build output so the SPA can serve it as static files.
+### 3. Dashboard — `@blip/dashboard`
+
+A static React + Vite + TypeScript SPA. At runtime it `fetch`es `/data/*.json`
+(served by the Worker from D1) and renders the overview, per-site detail
+(24h/7d/30d/90d graphs), incident history, and public status page. It is built to
+`packages/dashboard/dist` and bundled into the Worker as static assets — there's
+no separate hosting step.
+
+> **Legacy mode:** `packages/engine` is the original GitHub-Actions engine that
+> committed JSON into the repo. The Worker supersedes it and is the supported
+> path; the engine remains for anyone who prefers the commit-to-Git model.
 
 ## Data flow timing
 
-1. **Every 5 min:** `monitor.yml` runs, probes, and (if anything changed) commits
-   to `main`.
-2. **On that commit:** `deploy.yml` triggers (it watches `data/**` and the
-   dashboard packages), rebuilds, and ships to Cloudflare Pages.
-3. **Users** load the freshly-deployed static site. The SPA can also re-poll
-   `summary.json` on an interval (`VITE_REFRESH_MS`) within a single deploy.
+1. **Every 5 min:** the Worker's `scheduled()` handler probes and writes to D1.
+2. **On every request:** `fetch()` serves the dashboard and reads the latest
+   blobs from D1 — no rebuild or redeploy needed for data to update.
+3. **Clients** can re-poll `summary.json` on an interval (`VITE_REFRESH_MS`).
 
 ## Scaling limits
 
-GitHub-hosted runners and the 5-minute cron impose practical limits. Each run has
-to finish well inside its interval (checkout + `npm ci` + probes + commit).
-Rough guidance from the project plan:
+The 5-minute cron and the Worker's per-invocation CPU budget set practical
+limits. SSL/domain probes are cached (see above) so a tick is dominated by the
+HTTP/TCP checks, which run concurrently.
 
 | Sites | Recommended interval | Notes |
 |-------|----------------------|-------|
-| ≤ 20  | 5 min                | Comfortable on free runners. |
-| ≤ 50  | 10 min               | Halve the cron frequency. |
-| ≤ 100 | 15 min               | Probes run concurrently; commit dominates. |
+| ≤ 50  | 5 min                | Comfortable within a single Worker tick. |
+| ≤ 100 | 10 min               | Halve the cron frequency. |
 
-To go bigger: increase the interval, split sites across multiple repos/workflows,
-or run the engine on a beefier self-hosted runner. GitHub Actions free minutes are
-**unlimited for public repositories** and generous for private ones.
+To go bigger: raise the interval, or split sites across multiple Workers. The
+free tier covers 100k requests/day and 5M D1 rows read/day — far more than a
+5-minute cron and a handful of dashboard viewers consume.
 
-## Why GitHub Actions?
+## Why a Cloudflare Worker?
 
 - **$0 and zero infrastructure** — no VM, container, or cron host to babysit.
-- **External vantage point** — checks run from GitHub's network, so they catch
+- **External vantage point** — checks run from Cloudflare's edge, so they catch
   outages your own infra can't see itself fail.
-- **Built-in scheduler, secrets, and audit log.**
-- **Git as the database** — diffable, revertible, no backups to manage.
+- **One thing to deploy** — monitor, API, and dashboard are the same Worker.
+- **Reaches your LAN without open ports** — pair with a Cloudflare Tunnel +
+  Access service token to probe homelab services. See
+  [`deploy/homelab-tunnel/`](../deploy/homelab-tunnel/).
 
-## Pulse vs. vanilla Upptime
+## Blip vs. Upptime
 
 Upptime pioneered the "monitoring via GitHub Actions + static status page"
-pattern, and it's excellent. Pulse keeps that core idea but is built for
-**agencies and multi-tenant use**:
+pattern. Blip moves the same idea onto a single edge Worker and is built for
+**agencies, teams, and homelabbers**:
 
-| Capability                         | Upptime | Pulse |
+| Capability                         | Upptime | Blip |
 |------------------------------------|:------:|:-----:|
-| GitHub Actions monitoring          |   ✅   |  ✅  |
 | Static status page                 |   ✅   |  ✅  |
+| Runs with no server                |   ✅   |  ✅  |
+| Monitor LAN/homelab (no open ports)|   ❌   |  ✅  |
 | Multi-tenant **groups**            |   ❌   |  ✅  |
-| **RBAC** (4 roles)                 |   ❌   |  ✅  |
+| **RBAC** (4 roles, server-side)    |   ❌   |  ✅  |
 | Client-scoped dashboards           |   ❌   |  ✅  |
-| Cloudflare **Access** auth         |   ❌   |  ✅  |
 | JSON-body assertions               |  ⚠️   |  ✅  |
 | TCP / SSL / domain-expiry checks   |  ⚠️   |  ✅  |
 | Per-channel routing + flap suppression |  ⚠️ |  ✅  |
@@ -141,8 +145,8 @@ pattern, and it's excellent. Pulse keeps that core idea but is built for
 ⚠️ = partial / via plugins or workarounds.
 
 > If you just need a single public status page, vanilla Upptime is great. Reach
-> for Pulse when you need tenants, roles, client-facing dashboards, or richer
-> assertions.
+> for Blip when you need tenants, roles, client-facing dashboards, richer
+> assertions, or homelab monitoring.
 
 See also: [configuration.md](configuration.md) ·
 [deployment.md](deployment.md) · [access-control.md](access-control.md).

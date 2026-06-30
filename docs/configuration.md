@@ -1,16 +1,17 @@
 # Configuration reference
 
-Everything Pulse does is driven by a single file at the repo root:
-**`pulse.config.yaml`**. Edit it, commit, and the monitoring Action picks up the
-changes on its next run.
+Everything Blip does is driven by a single file at the repo root:
+**`blip.config.yaml`**. Edit it, then redeploy the Worker (`npm run deploy:cloud`,
+or `npm run deploy --workspace @blip/worker`) — `gen-config` embeds the changes
+into the bundle at build time.
 
 > A fully-commented, feature-complete copy lives at
-> [`config/pulse.config.example.yaml`](../config/pulse.config.example.yaml).
+> [`config/blip.config.example.yaml`](../config/blip.config.example.yaml).
 > Run `npm run setup` to generate a starter config interactively.
 
 **Secrets never live in this file.** Reference them as `${ENV_VAR}` and provide
-the values as GitHub Actions secrets (or `.env` locally). Missing variables are
-left unresolved with a warning — they never crash a run.
+the values as Worker secrets (`wrangler secret put <NAME>`, or `.env` locally).
+Missing variables are left unresolved with a warning — they never crash a run.
 
 Every field below maps 1:1 to the shared type contract in
 [`packages/shared/src/types.ts`](../packages/shared/src/types.ts).
@@ -53,7 +54,7 @@ Controls the look of the dashboard and the public status page.
 
 ```yaml
 brand:
-  name: Pulse
+  name: Blip
   tagline: Real-time status for everything we run.
   primaryColor: "#22c55e"
   logoUrl: https://example.com/logo.svg
@@ -75,7 +76,7 @@ Engine-wide defaults. Any site may override `timeoutMs`, `retries`,
 | `maxHistoryPoints`    | number   | `2016`                | Raw points kept per site (~7 days @ 5-min). Older data rolls up daily. |
 | `sslWarnDays`         | number   | `30`                  | Warn when a cert expires within N days. |
 | `domainWarnDays`      | number[] | `[30, 15, 7]`         | Domain-expiry warn thresholds. |
-| `userAgent`           | string   | `Pulse/0.1 (+…)`      | User-agent for HTTP checks. |
+| `userAgent`           | string   | `Blip/0.1 (+…)`      | User-agent for HTTP checks. |
 
 ```yaml
 defaults:
@@ -245,7 +246,7 @@ sites:
 
 ## `channels`
 
-Where alerts go. Pulse supports five channel types. Every channel shares the
+Where alerts go. Blip supports five channel types. Every channel shares the
 same optional **routing filters**; type-specific fields are listed per channel.
 
 ### Routing filters (all channels)
@@ -275,7 +276,7 @@ same optional **routing filters**; type-specific fields are listed per channel.
 |----------|----------|-------|
 | `type`   | `"email"`| |
 | `apiKey` | string   | Usually `${RESEND_API_KEY}`. |
-| `from`   | string   | e.g. `"Pulse <alerts@example.com>"`. |
+| `from`   | string   | e.g. `"Blip <alerts@example.com>"`. |
 | `to`     | string[] | Recipients. |
 
 ### `discord`
@@ -314,7 +315,7 @@ channels:
   - id: email-ops
     type: email
     apiKey: ${RESEND_API_KEY}
-    from: "Pulse <alerts@example.com>"
+    from: "Blip <alerts@example.com>"
     to: ["ops@example.com"]
     minDownMinutes: 5
 

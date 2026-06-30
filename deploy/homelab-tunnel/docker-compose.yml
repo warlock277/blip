@@ -1,6 +1,5 @@
-# cloudflared tunnel for homelab monitoring — run on CT 106 (192.168.0.220).
-# Sits alongside the existing /opt/beszel stack. Uses host networking so it can
-# reach every LAN origin (192.168.0.x) directly.
+# cloudflared tunnel for homelab monitoring — run on any Docker host on your LAN.
+# Uses host networking so it can reach every LAN origin (192.168.1.x) directly.
 #
 # Layout: everything lives in /opt/homelab-tunnel/etc, mounted as the
 # container's ~/.cloudflared (the default path cloudflared reads):

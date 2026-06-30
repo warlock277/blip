@@ -1,18 +1,15 @@
 # Deployment
 
-Get a fully working uptime monitor + status page running for **$0/month**. The
-monitoring engine runs on GitHub Actions; the dashboard is served from Cloudflare
-Pages.
+Get a fully working uptime monitor + status page running for **$0/month** on a
+single Cloudflare Worker backed by D1. No server, no separate hosting step.
 
 ## Deploy in 5 minutes ✅
 
-1. **Use the template / fork** this repo into your own GitHub account.
-2. **`npm install`** then **`npm run setup`** — the wizard writes your
-   `pulse.config.yaml`.
-3. **Add GitHub secrets** for the channels you enabled (and Cloudflare).
-4. **Enable GitHub Actions** so the `monitor` workflow starts on its 5-min cron.
-5. **Connect Cloudflare Pages** (build `npm run build`, output
-   `packages/dashboard/dist`, copy `/data` in). Push and you're live.
+1. **Use the template / fork** this repo, then `npm install`.
+2. **`npm run setup`** — the wizard writes your `blip.config.yaml`.
+3. **Create the D1 database** and paste its id into `packages/worker/wrangler.toml`.
+4. **Set your Worker secrets** (`wrangler secret put …`) for channels + auth.
+5. **`npm run deploy --workspace @blip/worker`** — you're live.
 
 The rest of this page expands each step.
 
@@ -20,9 +17,7 @@ The rest of this page expands each step.
 
 ## 1. Get the repo
 
-Click **Use this template → Create a new repository** (or fork). A **private**
-repo is recommended if any site is non-public or you'll use RBAC — see
-[access-control.md](access-control.md).
+Click **Use this template → Create a new repository** (or fork).
 
 ```bash
 git clone https://github.com/<you>/<your-repo>.git
@@ -30,7 +25,9 @@ cd <your-repo>
 npm install
 ```
 
-> Use Node 20+ (Node 22 is pinned in `.nvmrc` and used in CI).
+> Use Node 20+ (the version in `.nvmrc` is used in CI). You'll also use
+> [`wrangler`](https://developers.cloudflare.com/workers/wrangler/), which is
+> already a dev dependency — invoke it with `npx wrangler …`.
 
 ## 2. Configure what to monitor
 
@@ -41,99 +38,87 @@ npm run setup
 ```
 
 It asks for branding, your sites, and which notification channels to enable, then
-writes `pulse.config.yaml` (backing up any existing one to `.bak`). Prefer to edit
-by hand? Copy [`config/pulse.config.example.yaml`](../config/pulse.config.example.yaml)
+writes `blip.config.yaml` (backing up any existing one to `.bak`). Prefer to edit
+by hand? Copy [`config/blip.config.example.yaml`](../config/blip.config.example.yaml)
 and trim it down. Full field reference: [configuration.md](configuration.md).
 
-Preview locally with demo data:
+Preview locally with demo data — no Cloudflare account needed:
 
 ```bash
 npm run seed      # generates realistic sample data in /data
 npm run dev       # http://localhost:5173
 ```
 
-Validate your real config without sending alerts or committing:
+## 3. Create the D1 database
 
 ```bash
-npm run monitor:dry
+cd packages/worker
+npx wrangler d1 create blip-db
 ```
 
-## 3. Set GitHub secrets
+Copy the printed `database_id` into the `[[d1_databases]]` block of
+`packages/worker/wrangler.toml` (replace `PLACEHOLDER_SET_AT_DEPLOY`). Then apply
+the schema:
 
-**Settings → Secrets and variables → Actions → New repository secret.** Add only
-what you use:
+```bash
+npm run db:schema              # local; append --remote for the production DB:
+npx wrangler d1 execute blip-db --remote --file=schema.sql
+```
+
+## 4. Set your secrets
+
+The Worker reads secrets at runtime; set each one with `wrangler secret put`
+(run from `packages/worker`). Add only what you use:
 
 | Secret | Needed for |
 |--------|-----------|
+| `BLIP_SESSION_SECRET` | **Required** — signs login session cookies (any long random string). |
+| `BLIP_PW_<ID>` | Password for a principal in `access:` (e.g. `BLIP_PW_ADMIN`). See [access-control.md](access-control.md). |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Telegram alerts |
 | `RESEND_API_KEY` | Email alerts |
 | `DISCORD_WEBHOOK_URL` | Discord alerts |
 | `SLACK_WEBHOOK_URL` | Slack alerts |
-| `PAGER_WEBHOOK_URL` | Generic webhook (example name) |
-| `ACME_API_TOKEN` | Authenticated probes (example name) |
-| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Pages deploy |
+| `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` | Probing homelab origins behind Cloudflare Access ([guide](../deploy/homelab-tunnel/README.md)). |
+
+```bash
+echo -n 'a-long-random-string' | npx wrangler secret put BLIP_SESSION_SECRET
+echo -n 'choose-a-password'     | npx wrangler secret put BLIP_PW_ADMIN
+# …repeat for each channel/principal you reference in blip.config.yaml
+```
 
 How to obtain each notification credential: [notifications.md](notifications.md).
 
-## 4. Enable Actions & start monitoring
+## 5. Deploy
 
-1. Open the **Actions** tab and enable workflows if prompted.
-2. The **`monitor`** workflow runs every 5 minutes on its cron. To run it
-   immediately, open it → **Run workflow** (`workflow_dispatch`).
-3. It needs **write** permission to commit `/data`. The workflow already declares
-   `permissions: contents: write`; also confirm **Settings → Actions → General →
-   Workflow permissions** is set to **Read and write permissions**.
+```bash
+# from packages/worker (or use --workspace @blip/worker from the repo root)
+npm run deploy
+```
 
-After the first successful run you'll see commits like
-`chore(data): update monitoring snapshot [skip ci]` and JSON appearing under
-`/data`.
-
-## 5. Connect Cloudflare Pages
-
-You have two options.
-
-### Option A — deploy from GitHub Actions (recommended, in this repo)
-
-The included [`deploy.yml`](../.github/workflows/deploy.yml) builds the dashboard,
-copies `/data` into the output, and deploys with `cloudflare/wrangler-action`.
-
-1. **Create a Pages project:** Cloudflare dashboard → **Workers & Pages → Create →
-   Pages → "Direct Upload"**. Name it (e.g. `pulse`).
-2. **Create an API token:** My Profile → **API Tokens → Create Token** → use the
-   *Edit Cloudflare Workers* template (or scope to *Account › Cloudflare Pages ›
-   Edit*).
-3. **Find your Account ID:** Workers & Pages → right sidebar.
-4. Add GitHub secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
-5. Set `PROJECT_NAME` in `deploy.yml` to match step 1.
-6. Push to `main` (or run the workflow manually). The deploy triggers on changes
-   to `packages/dashboard/**`, `packages/shared/**`, or `data/**`.
-
-### Option B — Cloudflare Git integration
-
-Connect the repo directly in the Cloudflare dashboard (**Workers & Pages → Create
-→ Pages → Connect to Git**):
-
-- **Build command:** `npm run build`
-- **Build output directory:** `packages/dashboard/dist`
-- **Important — copy the data:** the SPA fetches `/data/*.json`, so the build
-  output must contain a `data/` folder. Either keep using `deploy.yml`'s copy
-  step, or add a postbuild copy in the dashboard package that copies repo-root
-  `/data` into `dist/data`. (Cloudflare's own deploy won't run the workflow's
-  copy step, so make sure the data ends up in `dist`.)
+This runs `gen-config` (embeds your `blip.config.yaml` into the Worker), builds
+the dashboard assets, and `wrangler deploy`s the Worker. The cron starts on its
+5-minute schedule; the next tick (≤5 min) populates D1. Check
+`https://<your-worker>.workers.dev/data/summary.json`.
 
 ## 6. Custom domain
 
-1. Cloudflare **Pages project → Custom domains → Set up a domain** (e.g.
-   `status.yourdomain.com`).
-2. Cloudflare creates the DNS record automatically if the zone is on Cloudflare;
-   otherwise add the shown `CNAME`.
-3. TLS is provisioned automatically.
+In `wrangler.toml`, point the route at your hostname:
 
-## 7. Lock it down (optional but recommended)
+```toml
+routes = [
+  { pattern = "status.yourdomain.com", custom_domain = true }
+]
+```
 
-Put **Cloudflare Access** in front of the deployment so only authorized users can
-open the dashboard, and keep the repo private. Full walkthrough:
-[access-control.md](access-control.md).
+Cloudflare creates the DNS record + TLS cert automatically (the zone must be on
+Cloudflare). Redeploy with `npm run deploy`.
+
+## 7. Lock it down
+
+Authentication and RBAC are built into the Worker — anonymous visitors see only
+public sites (when `publicStatusPage: true`); everything else requires a login.
+Set up principals and passwords, and optionally layer Cloudflare Access in front
+of the admin paths, in [access-control.md](access-control.md).
 
 ---
 
@@ -141,11 +126,11 @@ open the dashboard, and keep the repo private. Full walkthrough:
 
 | Symptom | Fix |
 |---------|-----|
-| `monitor` run fails to push | Set **Workflow permissions** to *Read and write* (Settings → Actions → General). |
-| No `/data` after a run | Check the `monitor` logs — `npm run monitor:dry` locally to validate the config. |
-| Dashboard loads but is empty | The build output is missing `data/` — verify the copy step (Option B note above). |
-| Cloudflare deploy fails auth | Re-check `CLOUDFLARE_API_TOKEN` scope and `CLOUDFLARE_ACCOUNT_ID`; confirm `PROJECT_NAME` matches the Pages project. |
-| Scheduled runs are late/skipped | GitHub may delay/skip cron under load; this is expected on free runners. |
+| Deploy fails: invalid `database_id` | You didn't paste the real id from `wrangler d1 create` into `wrangler.toml`. |
+| `/data/summary.json` is empty | Wait for the first cron tick (≤5 min), or trigger one with `npx wrangler dev` locally; confirm the schema was applied (`npm run db:schema --remote`). |
+| Can't log in | `BLIP_SESSION_SECRET` and the relevant `BLIP_PW_<ID>` secret must both be set; the `<ID>` is the principal id uppercased (`admin` → `BLIP_PW_ADMIN`). |
+| Dashboard loads but is empty | The build didn't bundle the dashboard assets — run `npm run build --workspace @blip/dashboard` then redeploy. |
+| Homelab sites all `down` | Service token not set, or the Access policy doesn't allow it — see [homelab-tunnel](../deploy/homelab-tunnel/README.md). |
 
 See also: [configuration.md](configuration.md) ·
 [notifications.md](notifications.md) · [architecture.md](architecture.md) ·
