@@ -1,5 +1,5 @@
-import type { OverallStatus } from "@pulse/shared";
-import { OVERALL_LABEL } from "@pulse/shared";
+import type { OverallStatus } from "@blip/shared";
+import { OVERALL_LABEL } from "@blip/shared";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OVERALL_DISPLAY_STATUS } from "@/lib/format";

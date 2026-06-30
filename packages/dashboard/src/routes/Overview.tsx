@@ -24,7 +24,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { uptimePct, uptimeColor } from "@/lib/format";
 import { useLayoutSearch } from "@/components/AppLayout";
-import { overallStatus } from "@pulse/shared";
+import { overallStatus } from "@blip/shared";
 
 export default function Overview() {
   const { data, error, loading, reload } = useSummary();
@@ -170,11 +170,11 @@ export default function Overview() {
 
       {filtered.length === 0 ? (
         <EmptyState
-          title={search ? "No sites match your search" : "No sites to show"}
+          title={search ? "No sites match your search" : "Waiting for the first check"}
           hint={
             search
               ? "Try a different name, URL, or tag."
-              : "Add sites to pulse.config.yaml in the repo to start monitoring."
+              : "Blip probes every 5 minutes — if you just deployed, results appear after the first run. Otherwise, add sites to blip.config.yaml."
           }
         />
       ) : (

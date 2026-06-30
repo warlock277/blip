@@ -23,7 +23,7 @@ const MIME: Record<string, string> = {
 function serveRepoData(): Plugin {
   const dataRoot = resolve(here, "../../data");
   return {
-    name: "pulse-serve-repo-data",
+    name: "blip-serve-repo-data",
     apply: "serve",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -61,7 +61,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(here, "src"),
-      "@pulse/shared": resolve(here, "../shared/src/index.ts"),
+      "@blip/shared": resolve(here, "../shared/src/index.ts"),
     },
   },
   server: {

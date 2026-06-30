@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { Summary, SiteHistory, Incident } from "@pulse/shared";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { BrandConfig, Summary, SummaryTotals, SiteHistory, Incident } from "@blip/shared";
 
 /** Base URL for the JSON data files (dev middleware / static in prod). */
 export const DATA_BASE: string = import.meta.env.VITE_DATA_BASE ?? "/data";
@@ -144,8 +144,32 @@ export function useResource<T>(
 // Typed convenience hooks
 // ---------------------------------------------------------------------------
 
+const EMPTY_TOTALS: SummaryTotals = { sites: 0, up: 0, down: 0, degraded: 0, paused: 0, uptime: 1 };
+
+/**
+ * The Worker serves `{}` for summary.json until the first cron tick lands. Backfill
+ * the array/totals fields so every route can assume they exist — otherwise the
+ * pre-first-tick `{}` crashes `data.sites.filter(...)` and the page renders blank.
+ */
+function normalizeSummary(d: Summary | undefined): Summary | undefined {
+  if (!d) return d;
+  return {
+    generatedAt: d.generatedAt ?? "",
+    brand: d.brand ?? ({} as BrandConfig),
+    overall: d.overall ?? "operational",
+    totals: d.totals ?? EMPTY_TOTALS,
+    groups: d.groups ?? [],
+    sites: d.sites ?? [],
+    incidents: d.incidents ?? [],
+  };
+}
+
 export function useSummary(): AsyncState<Summary> {
-  return useResource<Summary>("summary.json");
+  const state = useResource<Summary>("summary.json");
+  // Memoize on the raw fetch result so the normalized object is referentially
+  // stable across renders (only changes when a new payload arrives).
+  const data = useMemo(() => normalizeSummary(state.data), [state.data]);
+  return { ...state, data };
 }
 
 export function useHistory(id: string | undefined): AsyncState<SiteHistory> {

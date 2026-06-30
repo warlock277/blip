@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 type Theme = "light" | "dark";
 
-const STORAGE_KEY = "pulse-theme";
+const STORAGE_KEY = "blip-theme";
 
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";

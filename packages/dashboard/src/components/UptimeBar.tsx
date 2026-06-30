@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { DailyRollup, Status } from "@pulse/shared";
+import type { DailyRollup, Status } from "@blip/shared";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { uptimePct } from "@/lib/format";

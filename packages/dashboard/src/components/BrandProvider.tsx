@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { BrandConfig } from "@pulse/shared";
+import type { BrandConfig } from "@blip/shared";
 import { hexToHslTriple } from "@/lib/utils";
 
 /**
@@ -33,6 +33,6 @@ export function useBrand(brand: BrandConfig | undefined) {
 
   useEffect(() => {
     const name = brand?.name?.trim();
-    document.title = name ? `${name} — Status` : "Pulse — Status";
+    document.title = name ? `${name} — Status` : "Blip — Status";
   }, [brand?.name]);
 }

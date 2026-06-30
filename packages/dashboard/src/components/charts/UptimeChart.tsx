@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { DailyRollup } from "@pulse/shared";
+import type { DailyRollup } from "@blip/shared";
 import { shortDate, uptimePct } from "@/lib/format";
 import { EmptyState } from "@/components/States";
 

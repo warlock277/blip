@@ -1,8 +1,9 @@
-# @pulse/dashboard
+# @blip/dashboard
 
-The Pulse web UI — a static **React + Vite + TypeScript** SPA that reads the
-JSON produced by the monitoring engine and renders an admin dashboard plus a
-public, branded status page. Designed to deploy to **Cloudflare Pages**.
+The Blip web UI — a static **React + Vite + TypeScript** SPA that reads the
+`/data/*.json` served by the Worker and renders an admin dashboard plus a
+public, branded status page. Built to `dist/` and bundled into the Worker as
+static assets.
 
 ## Quick start
 
@@ -14,13 +15,13 @@ npm run dev            # → http://localhost:5173
 `npm run dev` serves seeded demo data so the UI renders immediately:
 
 - In dev, a tiny Vite middleware (`vite.config.ts`) serves `/data/*` from the
-  repo-root `/data` directory when it exists (written by the engine / seed
-  script). When it doesn't, it falls through to the **bundled demo data** in
-  `public/data/` so the app always has something to show.
+  repo-root `/data` directory when it exists (written by `npm run seed`). When it
+  doesn't, it falls through to the **bundled demo data** in `public/data/` so the
+  app always has something to show.
 - Regenerate the bundled demo data with `node scripts/gen-demo-data.mjs`.
 
-In production the deploy step copies the real `/data` into the build output, so
-the same `/data/...` fetch paths work unchanged.
+In production the Worker serves the same `/data/*.json` paths live from D1, so the
+SPA's fetch paths work unchanged.
 
 ## Scripts
 
@@ -42,7 +43,7 @@ Base URL = `import.meta.env.VITE_DATA_BASE ?? "/data"`.
 | `incidents.json`           | `Incident[]`    | Incidents page.               |
 | `permissions.json`         | `Permissions`   | RBAC UX gating (optional).    |
 
-All shapes come from `@pulse/shared`.
+All shapes come from `@blip/shared`.
 
 ## Environment variables
 

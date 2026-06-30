@@ -8,14 +8,14 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/lib/auth";
 
 interface LoginScreenProps {
-  /** Brand name for the card heading. Defaults to "Pulse". */
+  /** Brand name for the card heading. Defaults to "Blip". */
   brandName?: string;
   /** Optional callback after a successful login (e.g. to dismiss an overlay). */
   onSuccess?: () => void;
 }
 
 /** Branded, centered password-login card. Renders when auth is required. */
-export function LoginScreen({ brandName = "Pulse", onSuccess }: LoginScreenProps) {
+export function LoginScreen({ brandName = "Blip", onSuccess }: LoginScreenProps) {
   const { login } = useAuth();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +90,7 @@ export function LoginScreen({ brandName = "Pulse", onSuccess }: LoginScreenProps
         </CardContent>
       </Card>
       <p className="mt-6 text-xs text-muted-foreground">
-        Access is configured in <code className="text-foreground">pulse.config.yaml</code>.
+        Access is configured in <code className="text-foreground">blip.config.yaml</code>.
       </p>
     </div>
   );

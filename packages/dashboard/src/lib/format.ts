@@ -1,5 +1,5 @@
 import { formatDistanceToNowStrict, format, formatDuration, intervalToDuration } from "date-fns";
-import type { Status, OverallStatus, SiteSummary } from "@pulse/shared";
+import type { Status, OverallStatus, SiteSummary } from "@blip/shared";
 
 // ---------------------------------------------------------------------------
 // Status presentation maps

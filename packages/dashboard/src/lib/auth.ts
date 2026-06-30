@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
-import type { Role, SiteSummary, GroupSummary } from "@pulse/shared";
+import type { Role, SiteSummary, GroupSummary } from "@blip/shared";
 
 /**
- * Client-side auth state for the Pulse dashboard.
+ * Client-side auth state for the Blip dashboard.
  *
  * Security note: this module is UX-only. The real boundary is the Cloudflare
  * Worker, which signs an HttpOnly session cookie and filters every `/data/*`

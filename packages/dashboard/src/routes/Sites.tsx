@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
-import type { SiteSummary } from "@pulse/shared";
+import type { SiteSummary } from "@blip/shared";
 import { useSummary } from "@/lib/data";
 import { useAuth, scopedSites } from "@/lib/auth";
 import { useBrand } from "@/components/BrandProvider";
@@ -172,7 +172,7 @@ export default function Sites() {
       ) : rows.length === 0 ? (
         <EmptyState
           title={search ? "No sites match your search" : "No sites configured"}
-          hint={search ? "Try a different query." : "Add sites in pulse.config.yaml."}
+          hint={search ? "Try a different query." : "Add sites in blip.config.yaml."}
         />
       ) : (
         <Card className="overflow-hidden p-0">

@@ -27,7 +27,7 @@ function mulberry32(seed) {
 }
 
 const brand = {
-  name: "Pulse",
+  name: "Blip",
   tagline: "Real-time status for everything we run.",
   primaryColor: "#22c55e",
   website: "https://example.com",

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import type { GroupSummary, SiteSummary } from "@pulse/shared";
-import { overallStatus } from "@pulse/shared";
+import type { GroupSummary, SiteSummary } from "@blip/shared";
+import { overallStatus } from "@blip/shared";
 import { ExternalLink, Heart, LogIn, LogOut } from "lucide-react";
 import { useSummary } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
@@ -116,7 +116,7 @@ export default function Status() {
   );
 
   const brand = data?.brand;
-  const brandName = brand?.name?.trim() || "Pulse";
+  const brandName = brand?.name?.trim() || "Blip";
 
   // The Worker returned 401 for /data/summary.json (status page not public and
   // viewer not logged in) or the viewer asked to sign in → show the login card.
@@ -229,12 +229,12 @@ export default function Status() {
           <span className="inline-flex items-center gap-1.5">
             Powered by{" "}
             <a
-              href="https://github.com/pulse/pulse"
+              href="https://github.com/warlock277/blip"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
             >
-              <Heart className="size-3.5 fill-primary text-primary" /> Pulse
+              <Heart className="size-3.5 fill-primary text-primary" /> Blip
             </a>
           </span>
           {brand?.supportUrl && (

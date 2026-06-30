@@ -7,23 +7,21 @@ interface LogoProps {
   name?: string;
 }
 
-/** Pulse heartbeat mark + wordmark. Uses brand logo when provided. */
-export function Logo({ className, logoUrl, name = "Pulse" }: LogoProps) {
+/** Blip heartbeat mark + wordmark. Uses brand logo when provided. */
+export function Logo({ className, logoUrl, name = "Blip" }: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       {logoUrl ? (
         <img src={logoUrl} alt={name} className="size-7 rounded-md object-contain" />
       ) : (
         <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+          {/* Radar "blip": a dot emitting two signal arcs. */}
           <svg viewBox="0 0 32 32" className="size-5" aria-hidden="true">
-            <path
-              d="M5 16.5h4.2l2.1-6.3 3.6 11.4 3-9 2 3.9H27"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <g fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+              <path d="M10.6 19.2a7.2 7.2 0 0 1 10.8 0" />
+              <path d="M6.8 14.8a12.8 12.8 0 0 1 18.4 0" />
+            </g>
+            <circle cx="16" cy="22.4" r="2.7" fill="currentColor" />
           </svg>
         </span>
       )}

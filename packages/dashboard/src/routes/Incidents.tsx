@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
-import type { Incident } from "@pulse/shared";
+import type { Incident } from "@blip/shared";
 import { useIncidents, useSummary } from "@/lib/data";
 import { useAuth, siteInScope } from "@/lib/auth";
 import { useBrand } from "@/components/BrandProvider";

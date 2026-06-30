@@ -8,7 +8,7 @@ import {
   Clock,
   Gauge,
 } from "lucide-react";
-import type { HistoryPoint, SiteSummary } from "@pulse/shared";
+import type { HistoryPoint, SiteSummary } from "@blip/shared";
 import { useSummary, useHistory } from "@/lib/data";
 import { useAuth, siteInScope } from "@/lib/auth";
 import { useBrand } from "@/components/BrandProvider";

@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { useAuth, ROLE_LABEL } from "@/lib/auth";
+import { useSummary } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -106,13 +107,15 @@ function UserChip() {
 export function AppLayout() {
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: summary } = useSummary();
+  const brandName = summary?.brand?.name;
 
   return (
     <div className="flex min-h-full bg-background">
       {/* Sidebar (desktop) */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card/40 p-4 lg:flex">
         <div className="px-2 pb-6 pt-1">
-          <Logo />
+          <Logo name={brandName} />
         </div>
         <NavItems />
         <div className="mt-auto">
@@ -129,7 +132,7 @@ export function AppLayout() {
           />
           <aside className="absolute left-0 top-0 flex h-full w-64 flex-col border-r border-border bg-card p-4 shadow-xl animate-in slide-in-from-left">
             <div className="flex items-center justify-between px-2 pb-6 pt-1">
-              <Logo />
+              <Logo name={brandName} />
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
                 <X className="size-4" />
               </Button>

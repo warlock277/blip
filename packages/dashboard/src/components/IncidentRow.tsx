@@ -1,4 +1,4 @@
-import type { Incident } from "@pulse/shared";
+import type { Incident } from "@blip/shared";
 import { Link } from "react-router-dom";
 import { CircleDot, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

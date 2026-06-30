@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { SiteSummary } from "@pulse/shared";
+import type { SiteSummary } from "@blip/shared";
 import { ShieldCheck, ArrowUpRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";

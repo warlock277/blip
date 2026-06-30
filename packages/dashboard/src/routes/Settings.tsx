@@ -11,7 +11,7 @@ import {
   MessageSquare,
   Webhook,
 } from "lucide-react";
-import type { ChannelType, Role } from "@pulse/shared";
+import type { ChannelType, Role } from "@blip/shared";
 import { useSummary } from "@/lib/data";
 import { useBrand } from "@/components/BrandProvider";
 import { PageHeader } from "@/components/PageHeader";
@@ -86,7 +86,7 @@ export default function Settings() {
       <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
         <Info className="-mt-0.5 mr-1.5 inline size-4" />
         Configuration is edited in the repository (
-        <code className="rounded bg-background px-1 py-0.5 text-xs">pulse.config.yaml</code>), not
+        <code className="rounded bg-background px-1 py-0.5 text-xs">blip.config.yaml</code>), not
         here. Commit a change and the next monitoring run picks it up.
       </div>
 
@@ -102,7 +102,7 @@ export default function Settings() {
               <Skeleton className="h-24 w-full" />
             ) : (
               <dl className="space-y-2.5 text-sm">
-                <Row label="Name" value={brand?.name ?? "Pulse"} />
+                <Row label="Name" value={brand?.name ?? "Blip"} />
                 <Row label="Tagline" value={brand?.tagline ?? "—"} />
                 <Row
                   label="Accent"
@@ -183,7 +183,7 @@ export default function Settings() {
               . Your scope is{" "}
               <span className="font-medium text-foreground">{scopeSummary}</span>. Access is
               configured in{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">pulse.config.yaml</code> under{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">blip.config.yaml</code> under{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs">access.principals</code>, with
               passwords stored as Cloudflare Worker secrets. The Worker enforces access at the edge
               and filters all data server-side — the roles below only shape what the UI reveals.
@@ -215,7 +215,7 @@ export default function Settings() {
 
       <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
         <a
-          href="https://github.com/pulse/pulse"
+          href="https://github.com/warlock277/blip"
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 font-medium hover:bg-accent"

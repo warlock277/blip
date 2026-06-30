@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { HistoryPoint } from "@pulse/shared";
+import type { HistoryPoint } from "@blip/shared";
 import { clockLabel, shortDate, responseMs } from "@/lib/format";
 import { EmptyState } from "@/components/States";
 
