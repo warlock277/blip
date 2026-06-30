@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Pulse — demo data seeder.
+ * Blip — demo data seeder.
  *
  * Generates realistic, type-correct sample data under the repo-root `/data` so
  * that `npm run dev` shows a live-looking dashboard immediately.
  *
  *   node scripts/seed-demo.mjs    (or: npm run seed)
  *
- * It reads `pulse.config.yaml` (using the `yaml` package, hoisted to the root
+ * It reads `blip.config.yaml` (using the `yaml` package, hoisted to the root
  * node_modules after `npm install`). If the config can't be read/parsed, it
  * falls back to a small built-in set of demo sites.
  *
@@ -27,7 +27,7 @@ import { dirname, join } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const CONFIG_PATH = join(ROOT, "pulse.config.yaml");
+const CONFIG_PATH = join(ROOT, "blip.config.yaml");
 const DATA_DIR = join(ROOT, "data");
 const HISTORY_DIR = join(DATA_DIR, "history");
 
@@ -114,7 +114,7 @@ async function loadSites() {
       };
     });
     return {
-      brand: cfg.brand ?? { name: "Pulse", tagline: "Real-time status.", primaryColor: "#22c55e" },
+      brand: cfg.brand ?? { name: "Blip", tagline: "Real-time status.", primaryColor: "#22c55e" },
       groups,
       sites,
     };
@@ -126,7 +126,7 @@ async function loadSites() {
 
 function fallback() {
   return {
-    brand: { name: "Pulse", tagline: "Real-time status for everything we run.", primaryColor: "#22c55e" },
+    brand: { name: "Blip", tagline: "Real-time status for everything we run.", primaryColor: "#22c55e" },
     groups: [
       { id: "acme", name: "Acme Inc", icon: "🏢" },
       { id: "deps", name: "Upstream Services", icon: "🔌" },
@@ -276,7 +276,7 @@ function buildDomain(site, now) {
 
 // ── main ─────────────────────────────────────────────────────────────────────
 async function main() {
-  process.stdout.write("⚡ Pulse — seeding demo data\n");
+  process.stdout.write("⚡ Blip — seeding demo data\n");
   const { brand, groups, sites } = await loadSites();
   const now = Date.now();
 

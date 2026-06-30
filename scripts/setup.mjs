@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Pulse — interactive setup wizard.
+ * Blip — interactive setup wizard.
  *
  * Zero external dependencies (uses only the Node standard library) so it can run
  * BEFORE `npm install`. It asks a few friendly questions and writes a valid
- * `pulse.config.yaml` at the repo root.
+ * `blip.config.yaml` at the repo root.
  *
  *   node scripts/setup.mjs       (or: npm run setup)
  *
- * Existing config is backed up to `pulse.config.yaml.bak` before overwriting.
+ * Existing config is backed up to `blip.config.yaml.bak` before overwriting.
  */
 
 import { createInterface } from "node:readline/promises";
@@ -20,7 +20,7 @@ import { dirname, join } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const CONFIG_PATH = join(ROOT, "pulse.config.yaml");
+const CONFIG_PATH = join(ROOT, "blip.config.yaml");
 const BAK_PATH = `${CONFIG_PATH}.bak`;
 
 // ── tiny ANSI helpers (degrade gracefully if not a TTY) ─────────────────────
@@ -107,12 +107,12 @@ function yamlStr(value) {
 
 // ── wizard ───────────────────────────────────────────────────────────────────
 async function main() {
-  stdout.write(`\n${bold(green("⚡ Pulse setup"))}\n`);
-  stdout.write(dim("Let's build your pulse.config.yaml. Press Ctrl-C any time to abort.\n\n"));
+  stdout.write(`\n${bold(green("⚡ Blip setup"))}\n`);
+  stdout.write(dim("Let's build your blip.config.yaml. Press Ctrl-C any time to abort.\n\n"));
 
   // 1) Branding
   stdout.write(bold("1) Branding\n"));
-  const brandName = await ask("  Brand name", "Pulse");
+  const brandName = await ask("  Brand name", "Blip");
   const tagline = await ask("  Tagline", "Real-time status for everything we run.");
   const primaryColor = await ask("  Primary color (hex)", "#22c55e");
 
@@ -144,7 +144,7 @@ async function main() {
 
   // 3) Notification channels
   stdout.write(`\n${bold("3) Notification channels")}\n`);
-  stdout.write(dim("  Enable the ones you want. Tokens go in GitHub secrets later — not here.\n"));
+  stdout.write(dim("  Enable the ones you want. Tokens are set at deploy time, not here.\n"));
   const channels = [];
   const secretsNeeded = new Set();
 
@@ -153,7 +153,7 @@ async function main() {
     secretsNeeded.add("TELEGRAM_BOT_TOKEN").add("TELEGRAM_CHAT_ID");
   }
   if (await confirm("  Enable Email alerts (Resend)?", false)) {
-    const from = await ask("    From address", "Pulse <alerts@example.com>");
+    const from = await ask("    From address", "Blip <alerts@example.com>");
     const to = await ask("    To address(es), comma-separated", "ops@example.com");
     channels.push({ kind: "email", from, to: to.split(",").map((s) => s.trim()).filter(Boolean) });
     secretsNeeded.add("RESEND_API_KEY");
@@ -181,22 +181,26 @@ async function main() {
   await writeFile(CONFIG_PATH, yaml, "utf8");
 
   // ── next steps ──
-  stdout.write(`\n${bold(green("✓ Wrote pulse.config.yaml"))}\n\n`);
-  stdout.write(`${bold("Next steps:")}\n`);
+  stdout.write(`\n${bold(green("✓ Wrote blip.config.yaml"))} ${dim("(gitignored — safe for real values)")}\n\n`);
+  stdout.write(`${bold("Preview locally:")}\n`);
   stdout.write(`  ${cyan("1.")} npm install\n`);
   stdout.write(`  ${cyan("2.")} npm run seed     ${dim("# generate demo data")}\n`);
-  stdout.write(`  ${cyan("3.")} npm run dev      ${dim("# preview the dashboard at http://localhost:5173")}\n`);
+  stdout.write(`  ${cyan("3.")} npm run dev      ${dim("# http://localhost:5173")}\n`);
+
+  stdout.write(`\n${bold("Deploy to Cloudflare (one command):")}\n`);
+  stdout.write(`  ${cyan("•")} npx wrangler login    ${dim("# once, opens a browser")}\n`);
+  stdout.write(`  ${cyan("•")} npm run deploy:cloud  ${dim("# creates D1, sets secrets, deploys")}\n`);
+  stdout.write(dim("    It generates BLIP_SESSION_SECRET and prompts for your admin password +\n"));
+  stdout.write(dim("    the channel tokens below — no manual `wrangler secret put` needed.\n"));
 
   if (secretsNeeded.size > 0) {
-    stdout.write(`\n${bold("GitHub secrets to add")} ${dim("(Settings → Secrets and variables → Actions):")}\n`);
+    stdout.write(`\n${bold("Have these ready when it asks")} ${dim("(docs/notifications.md explains each):")}\n`);
+    stdout.write(`  • ${yellow("BLIP_PW_ADMIN")} ${dim("(a password you choose for the admin login)")}\n`);
     for (const s of secretsNeeded) stdout.write(`  • ${yellow(s)}\n`);
-    stdout.write(dim("  (docs/notifications.md explains how to obtain each value.)\n"));
   } else {
-    stdout.write(`\n${dim("  No notification channels enabled — you can add them later in pulse.config.yaml.")}\n`);
+    stdout.write(`\n${dim("  No notification channels enabled — add them later in blip.config.yaml.")}\n`);
   }
-
-  stdout.write(`\n${bold("Deploy:")} push to GitHub, enable Actions, and connect Cloudflare Pages.\n`);
-  stdout.write(dim("  Full guide: docs/deployment.md\n\n"));
+  stdout.write(dim("\n  Full guide: docs/deployment.md\n\n"));
 
   rl.close();
 }
@@ -204,7 +208,8 @@ async function main() {
 function renderConfig({ brandName, tagline, primaryColor, groupIds, sites, channels }) {
   const L = [];
   L.push("# Generated by `npm run setup`. Edit freely; see docs/configuration.md.");
-  L.push("# Secrets are referenced as ${ENV_VAR} and supplied via GitHub Actions secrets.");
+  L.push("# Secrets are referenced as ${ENV_VAR} and set with `wrangler secret put <NAME>`");
+  L.push("# (the deploy script prompts for them). This file is gitignored.");
   L.push("");
   L.push("version: 1");
   L.push("");
@@ -239,6 +244,17 @@ function renderConfig({ brandName, tagline, primaryColor, groupIds, sites, chann
     if (s.domain) L.push("    domain: true");
     L.push(`    public: ${s.public ? "true" : "false"}`);
   }
+  L.push("");
+
+  // Access control: public status page + one admin login. The password is set
+  // at deploy time as the Worker secret BLIP_PW_ADMIN (never stored here).
+  L.push("access:");
+  L.push("  publicStatusPage: true");
+  L.push("  principals:");
+  L.push("    - id: admin");
+  L.push("      label: Admin");
+  L.push("      role: ADMIN");
+  L.push("      password: ${BLIP_PW_ADMIN}");
   L.push("");
 
   if (channels.length > 0) {
