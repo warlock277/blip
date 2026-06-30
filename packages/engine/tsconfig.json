@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     // NOTE: `rootDir` is intentionally NOT set. The base config maps
-    // `@pulse/shared` to the sibling package's TS *source* (packages/shared/src),
+    // `@blip/shared` to the sibling package's TS *source* (packages/shared/src),
     // so a strict `rootDir: ./src` makes tsc reject those files as "outside
     // rootDir". Since we `noEmit`, rootDir has no practical effect anyway; the
     // engine source still all lives under ./src (see `include`).

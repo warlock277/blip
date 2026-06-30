@@ -8,7 +8,7 @@
  */
 
 import { connect, type PeerCertificate } from "node:tls";
-import type { SslInfo } from "@pulse/shared";
+import type { SslInfo } from "@blip/shared";
 import { iso, daysUntil } from "../util/time.js";
 import { log } from "../util/log.js";
 

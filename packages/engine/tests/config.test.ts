@@ -40,7 +40,7 @@ describe("interpolateEnv", () => {
 
 describe("loadConfig", () => {
   it("parses a valid config, applies defaults, and derives unique ids", async () => {
-    const cfg = await loadConfig({ rawYaml: VALID_YAML, cwd: "/tmp/pulse-test" });
+    const cfg = await loadConfig({ rawYaml: VALID_YAML, cwd: "/tmp/blip-test" });
     expect(cfg.sites).toHaveLength(2);
     // slugify("Site One") => "site-one"; duplicate gets "-2" suffix.
     expect(cfg.sites[0]!.id).toBe("site-one");
@@ -57,7 +57,7 @@ describe("loadConfig", () => {
   });
 
   it("defaults type=http and public=true", async () => {
-    const cfg = await loadConfig({ rawYaml: VALID_YAML, cwd: "/tmp/pulse-test" });
+    const cfg = await loadConfig({ rawYaml: VALID_YAML, cwd: "/tmp/blip-test" });
     expect(cfg.sites[0]!.type).toBe("http");
     expect(cfg.sites[0]!.public).toBe(true);
     expect(cfg.sites[0]!.paused).toBe(false);
@@ -66,7 +66,7 @@ describe("loadConfig", () => {
   it("respects an explicit data-dir override", async () => {
     const cfg = await loadConfig({
       rawYaml: VALID_YAML,
-      cwd: "/tmp/pulse-test",
+      cwd: "/tmp/blip-test",
       dataDir: "/abs/data",
     });
     expect(cfg.dataDir).toBe("/abs/data");
@@ -87,7 +87,7 @@ channels:
   - id: bad
     type: telegram
 `;
-    await expect(loadConfig({ rawYaml: bad, cwd: "/tmp" })).rejects.toThrow(/Invalid Pulse config/);
+    await expect(loadConfig({ rawYaml: bad, cwd: "/tmp" })).rejects.toThrow(/Invalid Blip config/);
   });
 
   it("throws on a site missing a url", async () => {
@@ -95,6 +95,6 @@ channels:
 sites:
   - name: no-url
 `;
-    await expect(loadConfig({ rawYaml: bad, cwd: "/tmp" })).rejects.toThrow(/Invalid Pulse config/);
+    await expect(loadConfig({ rawYaml: bad, cwd: "/tmp" })).rejects.toThrow(/Invalid Blip config/);
   });
 });

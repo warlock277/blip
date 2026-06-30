@@ -4,7 +4,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Resolve the workspace package to its TS source for tests.
-      "@pulse/shared": new URL("../shared/src/index.ts", import.meta.url).pathname,
+      "@blip/shared": new URL("../shared/src/index.ts", import.meta.url).pathname,
     },
   },
   test: {

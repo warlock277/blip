@@ -1,9 +1,9 @@
 {
-  "name": "@pulse/engine",
+  "name": "@blip/engine",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Pulse monitoring engine — runs site checks on GitHub Actions and writes JSON results into the repo.",
+  "description": "Blip monitoring engine — runs site checks on GitHub Actions and writes JSON results into the repo.",
   "scripts": {
     "monitor": "tsx src/index.ts",
     "monitor:dry": "tsx src/index.ts --dry-run",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@pulse/shared": "*",
+    "@blip/shared": "*",
     "yaml": "^2.6.1",
     "zod": "^3.24.1"
   },

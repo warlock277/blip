@@ -21,7 +21,7 @@ import {
   type HistoryPoint,
   type SiteHistory,
   type Status,
-} from "@pulse/shared";
+} from "@blip/shared";
 import { readJson, writeJson } from "../util/fs.js";
 import { dayKey } from "../util/time.js";
 

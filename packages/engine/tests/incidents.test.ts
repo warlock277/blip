@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { CheckResult, Incident } from "@pulse/shared";
+import type { CheckResult, Incident } from "@blip/shared";
 import { reconcileIncidents } from "../src/store/incidents.js";
 import type { EngineState } from "../src/store/state.js";
 import type { ResolvedSite } from "../src/config.js";

@@ -7,7 +7,7 @@
  */
 
 import { connect } from "node:net";
-import type { CheckResult } from "@pulse/shared";
+import type { CheckResult } from "@blip/shared";
 import { iso } from "../util/time.js";
 
 export interface TcpProbe {

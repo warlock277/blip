@@ -1,6 +1,6 @@
 /** Telegram notifier — Bot API sendMessage. Never throws. */
 
-import type { TelegramChannel } from "@pulse/shared";
+import type { TelegramChannel } from "@blip/shared";
 import type { EngineEvent } from "../events.js";
 import { plainText } from "./format.js";
 import type { NotifyContext, SendResult } from "./types.js";

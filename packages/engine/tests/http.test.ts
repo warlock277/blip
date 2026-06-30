@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DEFAULTS } from "@pulse/shared";
+import { DEFAULTS } from "@blip/shared";
 import {
   checkHttp,
   evalJsonAssertion,

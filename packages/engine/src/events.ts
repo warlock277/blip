@@ -6,7 +6,7 @@
  * context (site, status, ssl/domain info, timestamps) for both consumers.
  */
 
-import type { DomainInfo, EventType, SslInfo, Status } from "@pulse/shared";
+import type { DomainInfo, EventType, SslInfo, Status } from "@blip/shared";
 
 export interface EngineEvent {
   type: EventType;

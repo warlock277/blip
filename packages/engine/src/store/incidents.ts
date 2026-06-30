@@ -18,7 +18,7 @@ import type {
   Incident,
   IncidentType,
   Status,
-} from "@pulse/shared";
+} from "@blip/shared";
 import { readJson, writeJson } from "../util/fs.js";
 import type { ResolvedSite } from "../config.js";
 import type { EngineState, SiteState } from "./state.js";

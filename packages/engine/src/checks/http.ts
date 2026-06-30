@@ -17,7 +17,7 @@ import {
   type EngineDefaults,
   type JsonAssertion,
   type Status,
-} from "@pulse/shared";
+} from "@blip/shared";
 import type { ResolvedSite } from "../config.js";
 import { iso } from "../util/time.js";
 

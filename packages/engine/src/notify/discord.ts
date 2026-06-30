@@ -1,6 +1,6 @@
 /** Discord notifier — incoming webhook POST. Never throws. */
 
-import type { DiscordChannel } from "@pulse/shared";
+import type { DiscordChannel } from "@blip/shared";
 import type { EngineEvent } from "../events.js";
 import { plainText } from "./format.js";
 import type { NotifyContext, SendResult } from "./types.js";

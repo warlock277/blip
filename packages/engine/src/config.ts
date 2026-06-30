@@ -1,11 +1,11 @@
 /**
- * Config loader for `pulse.config.yaml`.
+ * Config loader for `blip.config.yaml`.
  *
  * Pipeline:
  *   1. locate the config file (explicit `--config` path, or walk up from cwd)
  *   2. read raw YAML text and interpolate `${ENV_VAR}` references from process.env
  *   3. parse YAML → unknown
- *   4. validate against a zod schema mirroring `PulseConfig`
+ *   4. validate against a zod schema mirroring `BlipConfig`
  *   5. apply DEFAULTS, derive site ids (slugify + de-dup), normalize options
  *
  * Throws ONLY on a genuinely invalid config (bad YAML / schema violation).
@@ -24,12 +24,12 @@ import {
   type CheckType,
   type EngineDefaults,
   type GroupConfig,
-  type PulseConfig,
+  type BlipConfig,
   type SiteConfig,
-} from "@pulse/shared";
+} from "@blip/shared";
 import { log } from "./util/log.js";
 
-const CONFIG_FILENAME = "pulse.config.yaml";
+const CONFIG_FILENAME = "blip.config.yaml";
 
 // ---------------------------------------------------------------------------
 // Resolved config shape (everything required that the engine relies on)
@@ -44,7 +44,7 @@ export interface ResolvedSite extends SiteConfig {
 
 export interface ResolvedConfig {
   /** The validated config, with site ids/defaults applied. */
-  config: PulseConfig & { sites: ResolvedSite[]; defaults: Required<EngineDefaults> };
+  config: BlipConfig & { sites: ResolvedSite[]; defaults: Required<EngineDefaults> };
   /** Sites with guaranteed id/type/public/paused. */
   sites: ResolvedSite[];
   defaults: Required<EngineDefaults>;
@@ -70,7 +70,7 @@ export interface LoadConfigOptions {
 }
 
 // ---------------------------------------------------------------------------
-// Zod schema (mirrors the shared PulseConfig contract)
+// Zod schema (mirrors the shared BlipConfig contract)
 // ---------------------------------------------------------------------------
 
 const jsonAssertionSchema = z.object({
@@ -319,7 +319,7 @@ export async function loadConfig(opts: LoadConfigOptions = {}): Promise<Resolved
       : findConfigFile(cwd);
     if (!located || !existsSync(located)) {
       throw new Error(
-        `Pulse config not found. Looked for "${CONFIG_FILENAME}" starting at ${cwd}` +
+        `Blip config not found. Looked for "${CONFIG_FILENAME}" starting at ${cwd}` +
           (opts.configPath ? ` (explicit --config ${opts.configPath})` : ""),
       );
     }
@@ -343,7 +343,7 @@ export async function loadConfig(opts: LoadConfigOptions = {}): Promise<Resolved
     const issues = result.error.issues
       .map((i) => `  - ${i.path.join(".") || "(root)"}: ${i.message}`)
       .join("\n");
-    throw new Error(`Invalid Pulse config (${configPath}):\n${issues}`);
+    throw new Error(`Invalid Blip config (${configPath}):\n${issues}`);
   }
 
   const validated = result.data;

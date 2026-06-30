@@ -1,6 +1,6 @@
 /** Generic webhook notifier — POSTs the raw JSON event. Never throws. */
 
-import type { WebhookChannel } from "@pulse/shared";
+import type { WebhookChannel } from "@blip/shared";
 import type { EngineEvent } from "../events.js";
 import type { NotifyContext, SendResult } from "./types.js";
 import { postJson } from "./types.js";

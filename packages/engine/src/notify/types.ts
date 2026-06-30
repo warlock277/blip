@@ -1,6 +1,6 @@
 /** Shared types for notification senders. */
 
-import type { ChannelConfig } from "@pulse/shared";
+import type { ChannelConfig } from "@blip/shared";
 import type { EngineEvent } from "../events.js";
 
 /** Context passed to every sender (timeouts, dry-run flag, etc.). */

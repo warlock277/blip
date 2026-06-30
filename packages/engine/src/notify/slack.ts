@@ -1,6 +1,6 @@
 /** Slack notifier — incoming webhook POST. Never throws. */
 
-import type { SlackChannel } from "@pulse/shared";
+import type { SlackChannel } from "@blip/shared";
 import type { EngineEvent } from "../events.js";
 import { plainText } from "./format.js";
 import type { NotifyContext, SendResult } from "./types.js";

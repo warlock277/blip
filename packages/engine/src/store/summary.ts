@@ -17,7 +17,7 @@ import {
   type Status,
   type Summary,
   type SummaryTotals,
-} from "@pulse/shared";
+} from "@blip/shared";
 import { writeJson } from "../util/fs.js";
 import { computeStats } from "./history.js";
 import type { ResolvedConfig, ResolvedSite } from "../config.js";

@@ -1,6 +1,6 @@
 /** Email notifier — Resend REST API. Never throws. */
 
-import type { EmailChannel } from "@pulse/shared";
+import type { EmailChannel } from "@blip/shared";
 import type { EngineEvent } from "../events.js";
 import { formatEvent } from "./format.js";
 import type { NotifyContext, SendResult } from "./types.js";

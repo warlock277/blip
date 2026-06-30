@@ -1,5 +1,5 @@
 /**
- * Pulse monitoring engine — entry point.
+ * Blip monitoring engine — entry point.
  *
  * Flow:
  *   1. parse CLI args (--dry-run, --config <path>, --data-dir <path>)
@@ -14,7 +14,7 @@
  * non-zero ONLY on a fatal config error.
  */
 
-import type { CheckResult, SiteHistory } from "@pulse/shared";
+import type { CheckResult, SiteHistory } from "@blip/shared";
 import { loadConfig, type ResolvedConfig } from "./config.js";
 import { runSiteCheck } from "./checks/index.js";
 import { mapLimit } from "./util/concurrency.js";
@@ -105,7 +105,7 @@ async function main(): Promise<number> {
 
   const { sites, defaults, channels, dataDir } = config;
   log.info(
-    `Pulse engine: ${sites.length} site(s), data dir ${dataDir}${cli.dryRun ? " (dry-run)" : ""}`,
+    `Blip engine: ${sites.length} site(s), data dir ${dataDir}${cli.dryRun ? " (dry-run)" : ""}`,
   );
 
   // --- 1. run all checks with bounded concurrency. runSiteCheck never throws,

@@ -2,7 +2,7 @@
  * Tiny leveled logger.
  *
  * Writes to stderr so that stdout stays reserved for structured output
- * (e.g. the dry-run summary table). Level is controlled by `PULSE_LOG_LEVEL`
+ * (e.g. the dry-run summary table). Level is controlled by `BLIP_LOG_LEVEL`
  * (debug | info | warn | error). Never logs secret values — callers are
  * responsible for not passing tokens/keys here.
  */
@@ -17,7 +17,7 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
 };
 
 function resolveLevel(): LogLevel {
-  const raw = (process.env["PULSE_LOG_LEVEL"] ?? "info").toLowerCase();
+  const raw = (process.env["BLIP_LOG_LEVEL"] ?? "info").toLowerCase();
   if (raw === "debug" || raw === "info" || raw === "warn" || raw === "error") {
     return raw;
   }

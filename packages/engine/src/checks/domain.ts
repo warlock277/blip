@@ -9,7 +9,7 @@
  * Returns `null` (with a logged warning) on any failure.
  */
 
-import type { DomainInfo } from "@pulse/shared";
+import type { DomainInfo } from "@blip/shared";
 import { iso, daysUntil } from "../util/time.js";
 import { log } from "../util/log.js";
 

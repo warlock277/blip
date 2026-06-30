@@ -8,7 +8,7 @@
  * status here is informational only.
  */
 
-import type { CheckResult, EngineDefaults, SslInfo, DomainInfo } from "@pulse/shared";
+import type { CheckResult, EngineDefaults, SslInfo, DomainInfo } from "@blip/shared";
 import { domainWarnDaysFor, sslWarnDaysFor, type ResolvedSite } from "../config.js";
 import { iso } from "../util/time.js";
 import { checkHttp } from "./http.js";

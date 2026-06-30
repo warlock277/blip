@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { CheckResult, SiteHistory } from "@pulse/shared";
+import type { CheckResult, SiteHistory } from "@blip/shared";
 import {
   appendPoint,
   buildSpark,

@@ -7,7 +7,7 @@
  */
 
 import { join } from "node:path";
-import type { Status } from "@pulse/shared";
+import type { Status } from "@blip/shared";
 import { readJson, writeJson } from "../util/fs.js";
 
 /** Per-site state carried between runs. */

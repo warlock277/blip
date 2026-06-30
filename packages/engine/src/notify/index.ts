@@ -13,7 +13,7 @@
  * Updates `state.alerts` in place and returns the list of send results.
  */
 
-import type { ChannelConfig, EventType } from "@pulse/shared";
+import type { ChannelConfig, EventType } from "@blip/shared";
 import type { EngineEvent } from "../events.js";
 import type { EngineState } from "../store/state.js";
 import { alertKey } from "../store/state.js";
