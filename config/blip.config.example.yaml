@@ -7,7 +7,7 @@
 #
 #  • Only `sites[].name` and `sites[].url` are ever required.
 #  • Secrets are referenced as ${ENV_VAR} and resolved from the environment
-#    (GitHub Actions secrets in prod, `.env` locally). They are NEVER stored here.
+#    (Worker secrets via `wrangler secret put` in prod, `.env` locally). They are NEVER stored here.
 #  • Every field below maps 1:1 to packages/shared/src/types.ts.
 #  • The sample targets are a safe public demo: the fictional "Acme Inc" using
 #    RFC 2606 example.* domains, plus a few well-known public endpoints.
