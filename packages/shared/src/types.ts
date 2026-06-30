@@ -1,5 +1,5 @@
 /**
- * Pulse — shared type contract.
+ * Blip — shared type contract.
  *
  * These types are the single source of truth shared between the monitoring
  * `engine` (writes the data) and the `dashboard` (reads the data). The JSON
@@ -35,7 +35,7 @@ export type Role = "SUPER_ADMIN" | "ADMIN" | "CLIENT" | "VIEWER";
 export type ChannelType = "telegram" | "email" | "discord" | "slack" | "webhook";
 
 // ---------------------------------------------------------------------------
-// Configuration (user-authored, parsed from pulse.config.yaml)
+// Configuration (user-authored, parsed from blip.config.yaml)
 // ---------------------------------------------------------------------------
 
 /** JSON-body assertion: the value at `path` (dot/bracket notation) must equal `equals`. */
@@ -226,7 +226,7 @@ export interface EngineDefaults {
 }
 
 /** The fully-parsed config object. */
-export interface PulseConfig {
+export interface BlipConfig {
   /** Schema/version marker. */
   version?: number;
   brand?: BrandConfig;

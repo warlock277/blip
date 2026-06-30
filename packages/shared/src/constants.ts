@@ -9,7 +9,7 @@ export const DEFAULTS: Required<EngineDefaults> = {
   maxHistoryPoints: 2_016, // ~7 days at 5-minute interval
   sslWarnDays: 30,
   domainWarnDays: [30, 15, 7],
-  userAgent: "Pulse/0.1 (+https://github.com/pulse/pulse)",
+  userAgent: "Blip/0.1 (+https://github.com/warlock277/blip)",
 };
 
 /** Default acceptable HTTP status range when none is specified. */

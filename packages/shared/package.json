@@ -1,9 +1,9 @@
 {
-  "name": "@pulse/shared",
+  "name": "@blip/shared",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Shared TypeScript types and constants for the Pulse engine and dashboard.",
+  "description": "Shared TypeScript types and constants for the Blip engine and dashboard.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
