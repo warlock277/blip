@@ -18,9 +18,9 @@
     "@blip/shared": "*"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250109.0",
+    "@cloudflare/workers-types": "^4.20260630.1",
     "typescript": "^5.7.2",
-    "wrangler": "^4.56.0",
+    "wrangler": "^4.106.0",
     "yaml": "^2.6.1",
     "vitest": "^3.2.6"
   }
