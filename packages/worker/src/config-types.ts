@@ -39,6 +39,12 @@ export interface Principal {
 export interface AccessConfig {
   /** Is /status (public-only sites) viewable without logging in? */
   publicStatusPage: boolean;
+  /**
+   * Is the FULL dashboard (overview/sites/incidents) viewable without logging in,
+   * read-only and scoped to public sites only? Great for a public demo. Settings
+   * still require a login. Defaults to false.
+   */
+  publicDashboard: boolean;
   principals: Principal[];
 }
 

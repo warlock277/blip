@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       label: me.label,
       scope: me.scope,
       publicStatusPage: me.publicStatusPage,
+      publicDashboard: me.publicDashboard ?? false,
       loading,
       login,
       logout,

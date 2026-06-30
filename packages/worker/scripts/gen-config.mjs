@@ -139,6 +139,7 @@ function main() {
   });
   const access = {
     publicStatusPage: rawAccess.publicStatusPage ?? true,
+    publicDashboard: rawAccess.publicDashboard ?? false,
     principals,
   };
 

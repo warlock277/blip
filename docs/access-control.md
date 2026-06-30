@@ -31,6 +31,11 @@ There are two layers:
 are restricted to whatever you scope them to. Anonymous (no login) sees only
 sites marked `public: true`, and only when `access.publicStatusPage` is `true`.
 
+> **Public demo dashboard.** Set `access.publicDashboard: true` to let anonymous
+> visitors open the full **read-only** dashboard (overview, sites, incidents,
+> per-site detail) — still scoped to `public: true` sites only, so private sites
+> never appear. Settings stays login-only. Great for a public demo instance.
+
 ---
 
 ## Configuring principals
@@ -40,6 +45,7 @@ Access lives under `access:` in `blip.config.yaml`:
 ```yaml
 access:
   publicStatusPage: true        # anyone can view /status (public sites only)
+  publicDashboard: false        # true → full read-only dashboard is public (demo)
   principals:
     - id: admin
       label: Admin

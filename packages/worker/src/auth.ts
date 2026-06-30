@@ -217,8 +217,12 @@ export function jsonAuth(body: unknown, status = 200): Response {
   });
 }
 
-export function meBody(session: Session | null, publicStatusPage: boolean): Record<string, unknown> {
-  if (!session) return { authenticated: false, publicStatusPage };
+export function meBody(
+  session: Session | null,
+  publicStatusPage: boolean,
+  publicDashboard = false,
+): Record<string, unknown> {
+  if (!session) return { authenticated: false, publicStatusPage, publicDashboard };
   const scope =
     session.role === "SUPER_ADMIN" || session.role === "ADMIN"
       ? "all"
@@ -229,6 +233,7 @@ export function meBody(session: Session | null, publicStatusPage: boolean): Reco
     label: session.label,
     scope,
     publicStatusPage,
+    publicDashboard,
   };
 }
 

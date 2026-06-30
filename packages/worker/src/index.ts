@@ -275,7 +275,7 @@ export default {
     // --- auth endpoints ---
     if (path === "/auth/me") {
       const session = await getSession(request, env);
-      return jsonAuth(meBody(session, access.publicStatusPage));
+      return jsonAuth(meBody(session, access.publicStatusPage, access.publicDashboard));
     }
     if (path === "/auth/login") {
       if (request.method !== "POST") return jsonAuth({ error: "method not allowed" }, 405);
@@ -314,8 +314,9 @@ export default {
         });
       }
       const session = await getSession(request, env);
-      // Anonymous access is only allowed when the public status page is enabled.
-      if (!session && !access.publicStatusPage) {
+      // Anonymous access (public scope) is allowed when either a public status
+      // page or a public read-only dashboard is enabled.
+      if (!session && !access.publicStatusPage && !access.publicDashboard) {
         return jsonResponse({ error: "unauthorized" }, 401);
       }
       const scope = scopeFor(session, access);

@@ -158,6 +158,30 @@ sites:
     paused: true
 
 # ════════════════════════════════════════════════════════════════════════════
+#  access — authentication + RBAC, enforced server-side by the Worker.
+#    publicStatusPage: anyone can view /status (public sites only), no login.
+#    publicDashboard:  anyone can view the full read-only dashboard (public sites
+#                      only) — handy for a public demo. Settings still need a login.
+#    principals:       login identities. Password resolves (first match wins) from
+#                      a ${ENV_VAR} ref, an inline literal (dev only), or the
+#                      Worker secret BLIP_PW_<ID>. SUPER_ADMIN/ADMIN see everything;
+#                      CLIENT/VIEWER are scoped to their groups/sites.
+# ════════════════════════════════════════════════════════════════════════════
+access:
+  publicStatusPage: true
+  publicDashboard: false
+  principals:
+    - id: admin
+      label: Admin
+      role: ADMIN
+      password: ${BLIP_PW_ADMIN}      # wrangler secret put BLIP_PW_ADMIN
+    - id: acme-client                 # a scoped client — sees only the "acme" group
+      label: Acme Inc
+      role: CLIENT
+      groups: [acme]
+      password: ${BLIP_PW_ACME_CLIENT}
+
+# ════════════════════════════════════════════════════════════════════════════
 #  channels — where alerts go.
 #  Common optional filters on every channel:
 #    events:         subset of [down, up, degraded, ssl, domain] (default: all)

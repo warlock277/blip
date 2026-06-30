@@ -22,6 +22,8 @@ export interface AuthMe {
   label?: string;
   scope?: Scope;
   publicStatusPage: boolean;
+  /** Anonymous viewers may see the full read-only dashboard (public sites). */
+  publicDashboard?: boolean;
 }
 
 export const ROLE_RANK: Record<Role, number> = {
@@ -57,7 +59,7 @@ export const ROLE_DESCRIPTION: Record<Role, string> = {
  */
 const DEV_ROLE = import.meta.env.VITE_DEV_ROLE as Role | undefined;
 
-const UNAUTHENTICATED: AuthMe = { authenticated: false, publicStatusPage: false };
+const UNAUTHENTICATED: AuthMe = { authenticated: false, publicStatusPage: false, publicDashboard: false };
 
 /** Fetch the current identity from the Worker. Tolerates the dev no-Worker case. */
 export async function fetchMe(): Promise<AuthMe> {
@@ -85,6 +87,7 @@ function devFallback(): AuthMe {
       label: "Dev user",
       scope: "all",
       publicStatusPage: true,
+      publicDashboard: true,
     };
   }
   return UNAUTHENTICATED;
@@ -175,6 +178,8 @@ export interface AuthContextValue {
   label?: string;
   scope?: Scope;
   publicStatusPage: boolean;
+  /** Anonymous viewers may see the full read-only dashboard (public sites). */
+  publicDashboard: boolean;
   /** True until the first `GET /auth/me` resolves. */
   loading: boolean;
   /** Attempt a password login; refreshes state on success. */
@@ -186,6 +191,7 @@ export interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue>({
   authenticated: false,
   publicStatusPage: false,
+  publicDashboard: false,
   loading: true,
   login: async () => ({ ok: false, wrongPassword: false }),
   logout: async () => {},

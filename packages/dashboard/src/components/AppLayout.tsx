@@ -11,6 +11,7 @@ import {
   X,
   ExternalLink,
   LogOut,
+  LogIn,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Input } from "@/components/ui/input";
@@ -46,9 +47,12 @@ export function useLayoutSearch(): string {
 }
 
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+  const { authenticated } = useAuth();
+  // Settings is login-only; hide it from anonymous (public-dashboard) viewers.
+  const items = NAV.filter((n) => authenticated || n.to !== "/settings");
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map(({ to, label, icon: Icon, end }) => (
+      {items.map(({ to, label, icon: Icon, end }) => (
         <NavLink
           key={to}
           to={to}
@@ -74,6 +78,23 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 
 function UserChip() {
   const auth = useAuth();
+  // Anonymous viewer on a public dashboard — offer an admin sign-in entry point.
+  if (!auth.authenticated) {
+    return (
+      <NavLink
+        to="/settings"
+        className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <LogIn className="size-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium">Public demo</p>
+          <p className="truncate text-[10px] text-muted-foreground">Admin sign in →</p>
+        </div>
+      </NavLink>
+    );
+  }
   const label = auth.label ?? "Signed-in user";
   const initial = (label[0] ?? "P").toUpperCase();
   return (

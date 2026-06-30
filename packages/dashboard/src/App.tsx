@@ -27,12 +27,14 @@ function RouteFallback() {
 }
 
 /**
- * Gate that requires an authenticated session. When not authenticated it
- * renders the LoginScreen inline (no redirect — keeps URLs stable).
+ * Gate for the admin shell. Requires an authenticated session, EXCEPT when
+ * `allowPublic` is set and the workspace enables `publicDashboard` — then
+ * anonymous viewers get the read-only dashboard (the Worker scopes their data
+ * to public sites). When neither holds, the LoginScreen renders inline.
  */
-function RequireAuth({ children }: { children: ReactNode }) {
-  const { authenticated } = useAuth();
-  if (!authenticated) return <LoginScreen />;
+function RequireAuth({ children, allowPublic = false }: { children: ReactNode; allowPublic?: boolean }) {
+  const { authenticated, publicDashboard } = useAuth();
+  if (!authenticated && !(allowPublic && publicDashboard)) return <LoginScreen />;
   return <>{children}</>;
 }
 
@@ -56,10 +58,11 @@ export default function App() {
             {/* Public status page — standalone minimal layout, no sidebar. */}
             <Route path="/status" element={<PublicStatus />} />
 
-            {/* Admin app shell — every route requires authentication. */}
+            {/* Dashboard shell. Read-only routes allow anonymous viewers when
+                `publicDashboard` is on; Settings always requires a login. */}
             <Route
               element={
-                <RequireAuth>
+                <RequireAuth allowPublic>
                   <AppLayout />
                 </RequireAuth>
               }
@@ -68,7 +71,14 @@ export default function App() {
               <Route path="sites" element={<Sites />} />
               <Route path="sites/:id" element={<SiteDetail />} />
               <Route path="incidents" element={<Incidents />} />
-              <Route path="settings" element={<Settings />} />
+              <Route
+                path="settings"
+                element={
+                  <RequireAuth>
+                    <Settings />
+                  </RequireAuth>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
