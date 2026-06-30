@@ -1,0 +1,55 @@
+[
+  {
+    "id": "inc-acme-app-down-1",
+    "siteId": "acme-app",
+    "siteName": "Acme App",
+    "type": "down",
+    "state": "open",
+    "title": "Acme App is unreachable",
+    "detail": "Origin returning connection timeouts from all regions.",
+    "startedAt": "2026-06-18T09:45:02.081Z",
+    "updates": [
+      {
+        "at": "2026-06-18T09:47:02.081Z",
+        "message": "Investigating elevated error rates."
+      },
+      {
+        "at": "2026-06-18T10:05:02.081Z",
+        "message": "Identified an upstream provider outage."
+      }
+    ]
+  },
+  {
+    "id": "inc-acme-app-ssl-1",
+    "siteId": "acme-app",
+    "siteName": "Acme App",
+    "type": "ssl_expiring",
+    "state": "open",
+    "title": "TLS certificate expires in 8 days",
+    "detail": "Renew the certificate to avoid an outage.",
+    "startedAt": "2026-06-16T10:25:02.081Z"
+  },
+  {
+    "id": "inc-acme-api-degraded-1",
+    "siteId": "acme-api",
+    "siteName": "Acme API",
+    "type": "degraded",
+    "state": "resolved",
+    "title": "Elevated response times on the API",
+    "startedAt": "2026-06-15T10:25:02.081Z",
+    "resolvedAt": "2026-06-15T11:37:02.081Z",
+    "durationMs": 4320000
+  },
+  {
+    "id": "inc-acme-website-down-1",
+    "siteId": "acme-website",
+    "siteName": "Acme Website",
+    "type": "down",
+    "state": "resolved",
+    "title": "Brief outage during a deploy",
+    "detail": "A bad release caused 5xx responses; rolled back.",
+    "startedAt": "2026-06-07T10:25:02.081Z",
+    "resolvedAt": "2026-06-07T10:34:02.081Z",
+    "durationMs": 540000
+  }
+]

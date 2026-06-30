@@ -1,0 +1,74 @@
+# ============================================================================
+#  Pulse Worker — Cloudflare-native monitoring mode
+#
+#  ONE Cloudflare Worker that:
+#    - runs site checks on a Cron Trigger (every 5 minutes),
+#    - stores raw history + precomputed blobs in D1 (SQLite),
+#    - serves the static dashboard AND the /data/*.json API it fetches.
+#
+#  This is an ALTERNATIVE to the GitHub-Actions engine (packages/engine).
+#
+#  -------------------------------------------------------------------------
+#  One-time setup / deploy
+#  -------------------------------------------------------------------------
+#    1. Create the D1 database:
+#         npx wrangler d1 create pulse-db
+#       Copy the printed `database_id` into the [[d1_databases]] block below
+#       (replace PLACEHOLDER_SET_AT_DEPLOY).
+#
+#    2. Apply the schema (creates the `points` + `kv` tables):
+#         npm run db:schema
+#       (remote: append --remote, e.g. `wrangler d1 execute pulse-db --remote --file=schema.sql`)
+#
+#    3. Build the dashboard so its static assets exist at ../dashboard/dist:
+#         npm run build --workspace @pulse/dashboard
+#
+#    4. Generate the embedded config + deploy:
+#         npm run deploy        # runs gen-config then `wrangler deploy`
+#
+#  The dashboard polls /data/summary.json, /data/history/<id>.json and
+#  /data/incidents.json — all served from D1 by this same Worker.
+# ============================================================================
+
+name = "pulse-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+# nodejs_compat is required for any node-style globals the bundle may touch and
+# is the supported way to enable Node built-in shims on Workers.
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Custom domain — Cloudflare creates/owns the DNS record + cert pointing the
+# hostname at this Worker (requires no conflicting `pulse` CNAME to pre-exist).
+routes = [
+  { pattern = "pulse.akashghuri.xyz", custom_domain = true }
+]
+
+# Run the checks every 5 minutes.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# D1 binding. `database_id` MUST be filled in after `wrangler d1 create pulse-db`
+# (step 1 above). The placeholder is intentionally invalid so a deploy without
+# it fails loudly instead of writing to the wrong database.
+[[d1_databases]]
+binding = "DB"
+database_name = "pulse-db"
+database_id = "9bae211a-ab49-47ee-8b15-13a1259a1391"
+
+# Static dashboard assets. The dashboard is a built SPA; unknown routes fall
+# back to index.html so client-side routing works. The Worker's own fetch()
+# handler intercepts /data/* BEFORE assets, so the JSON API is served from D1.
+[assets]
+directory = "../dashboard/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+# Run the Worker BEFORE static assets for the data API, so /data/* is served
+# from D1 (live) and never shadowed by any bundled JSON. Other paths are served
+# directly from assets.
+run_worker_first = ["/data/*", "/auth/*"]
+
+# Optional: how often (hours) to refresh the slow/rate-limited SSL + domain
+# probes. Defaults to 6h in code when unset.
+[vars]
+SSL_REFRESH_HOURS = "6"

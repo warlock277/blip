@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Neutral surface palette (light). */
+    --background: 0 0% 100%;
+    --foreground: 222 24% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 24% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 24% 12%;
+    --secondary: 220 16% 96%;
+    --secondary-foreground: 222 24% 18%;
+    --muted: 220 16% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 16% 96%;
+    --accent-foreground: 222 24% 18%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 152 60% 40%;
+
+    /* Brand accent — overridden at runtime from summary.brand.primaryColor. */
+    --primary: 152 60% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Status palette. */
+    --up: 152 60% 40%;
+    --up-soft: 152 55% 92%;
+    --degraded: 38 92% 50%;
+    --degraded-soft: 42 95% 92%;
+    --down: 351 75% 53%;
+    --down-soft: 351 85% 95%;
+    --paused: 220 9% 60%;
+    --paused-soft: 220 14% 94%;
+
+    --radius: 0.85rem;
+  }
+
+  .dark {
+    --background: 224 28% 7%;
+    --foreground: 210 22% 92%;
+    --card: 224 24% 10%;
+    --card-foreground: 210 22% 92%;
+    --popover: 224 24% 10%;
+    --popover-foreground: 210 22% 92%;
+    --secondary: 222 20% 15%;
+    --secondary-foreground: 210 22% 90%;
+    --muted: 222 20% 15%;
+    --muted-foreground: 218 12% 60%;
+    --accent: 222 20% 16%;
+    --accent-foreground: 210 22% 90%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 16% 18%;
+    --input: 220 16% 20%;
+    --ring: 152 55% 45%;
+
+    --primary: 152 55% 46%;
+    --primary-foreground: 224 28% 7%;
+
+    --up: 152 55% 46%;
+    --up-soft: 152 35% 18%;
+    --degraded: 38 90% 55%;
+    --degraded-soft: 38 50% 18%;
+    --down: 351 70% 58%;
+    --down-soft: 351 40% 20%;
+    --paused: 220 10% 50%;
+    --paused-soft: 220 14% 20%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle, themed scrollbars. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Faint dotted backdrop used on hero / status surfaces. */
+  .bg-grid {
+    background-image: radial-gradient(
+      hsl(var(--muted-foreground) / 0.12) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+}

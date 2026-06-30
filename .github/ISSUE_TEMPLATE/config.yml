@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & discussions
+    url: https://github.com/warlock277/blip/discussions
+    about: Ask how-to questions, share your status page, or propose ideas before filing an issue.
+  - name: 📖 Documentation
+    url: https://github.com/warlock277/blip/tree/main/docs
+    about: Configuration, deployment, notifications, access control, and architecture guides.
+  - name: 🔐 Report a security vulnerability
+    url: https://github.com/warlock277/blip/security/advisories/new
+    about: Please report security issues privately, never as a public issue.

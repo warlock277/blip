@@ -1,0 +1,24 @@
+{
+  "name": "@pulse/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pulse Cloudflare Worker — Cloudflare-native monitoring mode. One Worker runs checks on a Cron Trigger, stores results in D1, and serves the dashboard + /data/*.json API.",
+  "scripts": {
+    "gen-config": "node scripts/gen-config.mjs",
+    "build": "npm run gen-config && wrangler deploy --dry-run --outdir dist",
+    "deploy": "npm run gen-config && wrangler deploy",
+    "dev": "npm run gen-config && wrangler dev",
+    "db:schema": "wrangler d1 execute pulse-db --file=schema.sql",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pulse/shared": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.56.0",
+    "yaml": "^2.6.1"
+  }
+}

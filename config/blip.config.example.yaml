@@ -1,0 +1,218 @@
+# ============================================================================
+#  Pulse — FULL configuration reference
+#  ----------------------------------------------------------------------------
+#  This file demonstrates EVERY supported feature: all check types, all channel
+#  types, all assertion kinds, groups, and branding. Copy the bits you need into
+#  the repo-root `pulse.config.yaml` (which is what the engine actually reads).
+#
+#  • Only `sites[].name` and `sites[].url` are ever required.
+#  • Secrets are referenced as ${ENV_VAR} and resolved from the environment
+#    (GitHub Actions secrets in prod, `.env` locally). They are NEVER stored here.
+#  • Every field below maps 1:1 to packages/shared/src/types.ts.
+#  • The sample targets are a safe public demo: the fictional "Acme Inc" using
+#    RFC 2606 example.* domains, plus a few well-known public endpoints.
+#
+#  Full prose reference: docs/configuration.md
+# ============================================================================
+
+version: 1
+
+# ════════════════════════════════════════════════════════════════════════════
+#  brand — appearance of the dashboard + public status page
+# ════════════════════════════════════════════════════════════════════════════
+brand:
+  name: Pulse                                   # shown in the header
+  tagline: Real-time status for everything we run.
+  primaryColor: "#22c55e"                       # hex accent colour
+  logoUrl: https://example.com/logo.svg         # optional; header logo
+  faviconUrl: https://example.com/favicon.ico   # optional
+  website: https://example.com                  # optional "back to site" link
+  supportUrl: https://example.com/support       # optional support link
+
+# ════════════════════════════════════════════════════════════════════════════
+#  defaults — applied to every site unless the site overrides them
+# ════════════════════════════════════════════════════════════════════════════
+defaults:
+  timeoutMs: 10000            # per-check timeout (ms)
+  retries: 2                  # retries before a site is declared "down"
+  degradedThresholdMs: 2000   # responses slower than this => "degraded"
+  maxHistoryPoints: 2016      # raw points kept per site (~7 days @ 5-min); older data rolls up daily
+  sslWarnDays: 30             # warn when a cert expires within N days
+  domainWarnDays: [30, 15, 7] # warn at each domain-expiry threshold
+  userAgent: "Pulse/0.1 (+https://github.com/pulse/pulse)"  # UA for HTTP checks
+
+# ════════════════════════════════════════════════════════════════════════════
+#  groups — tenants / products / regions. Used for scoping permissions and the
+#  public status page. Referenced by `site.group` and channel `groups:` filters.
+# ════════════════════════════════════════════════════════════════════════════
+groups:
+  - id: acme
+    name: Acme Inc
+    icon: "🏢"
+    description: Our own products and services.
+  - id: deps
+    name: Upstream Services
+    icon: "🔌"
+    description: Third-party services we depend on.
+
+# ════════════════════════════════════════════════════════════════════════════
+#  sites — the things you monitor
+# ════════════════════════════════════════════════════════════════════════════
+sites:
+  # ── 1. Simplest possible check ─────────────────────────────────────────────
+  # HTTP GET, expects a 2xx/3xx response. Everything else uses defaults.
+  - name: Acme Website
+    url: https://example.com
+    group: acme
+    public: true              # show on the public status page (default: true)
+    ssl: true                 # also watch TLS certificate expiry (uses defaults.sslWarnDays)
+    domain: true              # also watch domain registration expiry (uses defaults.domainWarnDays)
+    tags: [marketing, primary]
+    description: Our main marketing site.
+
+  # ── 2. API health: status + keyword assertion ──────────────────────────────
+  # api.github.com is a stable, public, no-auth endpoint that returns JSON
+  # containing "current_user_url" — handy for demonstrating keyword checks.
+  - name: GitHub API
+    url: https://api.github.com
+    group: deps
+    type: http                # explicit (default anyway)
+    method: GET
+    expectedStatus: 200       # single code, or a list e.g. [200, 204]
+    keyword: "current_user_url"  # response body MUST contain this substring
+    keywordAbsent: "error"    # response body MUST NOT contain this substring
+    degradedThresholdMs: 800  # tighter SLA for an API
+    timeoutMs: 5000
+    retries: 3
+    ssl: { warnDays: 21 }     # per-site SSL warn window override
+
+  # ── 3. JSON assertions + auth header + custom request ──────────────────────
+  - name: Acme API
+    url: https://example.net
+    group: acme
+    method: POST
+    headers:
+      Authorization: "Bearer ${ACME_API_TOKEN}"     # secret via env var
+      Content-Type: "application/json"
+    body: '{"probe":true}'
+    expectedStatus: [200, 202]
+    expectJson:
+      - path: "status"          # dot/bracket path into the JSON body
+        equals: "healthy"       # strict equality (string | number | boolean | null)
+      - path: "db.connected"
+        equals: true
+      - path: "regions[0].name"
+        contains: "us"          # substring match instead of equals
+    followRedirects: false      # do not follow 3xx (default: true)
+    verifyTls: true             # fail on invalid/expired TLS (default: true)
+    public: false               # internal only — hidden from the public page
+
+  # ── 4. Site routed to a specific channel via per-site override ─────────────
+  - name: Acme App
+    url: https://example.org
+    group: acme
+    ssl: true
+    domain: { warnDays: [45, 14] }   # custom domain-expiry thresholds
+    notify: [telegram-acme]          # override routing: only this channel fires
+
+  # ── 5. Raw TCP port check (database, game server, SMTP, …) ─────────────────
+  - name: Acme Database
+    url: example.com                 # host only…
+    type: tcp
+    port: 5432                       # …port given separately (or as host:port in url)
+    group: acme
+    public: false
+
+  # ── 6. Dedicated SSL-only check (no HTTP request) ──────────────────────────
+  - name: Acme Cert Watch
+    url: https://example.org
+    type: ssl
+    group: acme
+    ssl: { warnDays: 30 }
+    public: false
+
+  # ── 7. Dedicated domain-expiry-only check (RDAP/WHOIS) ─────────────────────
+  - name: Acme Domain Watch
+    url: example.org
+    type: domain
+    group: acme
+    domain: { warnDays: [60, 30, 7] }
+    public: false
+
+  # ── 8. Plain public dependencies ───────────────────────────────────────────
+  - name: Wikipedia
+    url: https://www.wikipedia.org
+    group: deps
+    ssl: true
+
+  - name: Cloudflare
+    url: https://www.cloudflare.com
+    group: deps
+    ssl: true
+    domain: true
+
+  # ── 9. A paused site (kept in config, not probed) ──────────────────────────
+  - name: Legacy Dashboard
+    url: https://example.com
+    group: acme
+    paused: true
+
+# ════════════════════════════════════════════════════════════════════════════
+#  channels — where alerts go.
+#  Common optional filters on every channel:
+#    events:         subset of [down, up, degraded, ssl, domain] (default: all)
+#    sites:          only these site ids
+#    groups:         only sites in these groups
+#    minDownMinutes: wait this long before firing a "down" alert (flap suppression)
+#  A site's `notify:` list, if present, overrides global routing for that site.
+# ════════════════════════════════════════════════════════════════════════════
+channels:
+  # ── Telegram ──
+  - id: telegram-main
+    type: telegram
+    botToken: ${TELEGRAM_BOT_TOKEN}
+    chatId: ${TELEGRAM_CHAT_ID}
+    events: [down, up, ssl, domain]
+    minDownMinutes: 0
+
+  # ── Email (Resend) ──
+  - id: email-ops
+    type: email
+    apiKey: ${RESEND_API_KEY}
+    from: "Pulse <alerts@example.com>"
+    to: ["ops@example.com", "oncall@example.com"]
+    events: [down, up, ssl, domain]
+    minDownMinutes: 5          # ignore blips shorter than 5 minutes
+
+  # ── Discord ──
+  - id: discord-eng
+    type: discord
+    webhookUrl: ${DISCORD_WEBHOOK_URL}
+    events: [down, up, degraded]
+    groups: [deps]             # only Upstream Services sites
+
+  # ── Slack ──
+  - id: slack-incidents
+    type: slack
+    webhookUrl: ${SLACK_WEBHOOK_URL}
+    events: [down, up]
+    minDownMinutes: 2
+
+  # ── Client-scoped Telegram (only fires for sites that opt in via notify:) ──
+  - id: telegram-acme
+    type: telegram
+    botToken: ${TELEGRAM_BOT_TOKEN}
+    chatId: ${ACME_TELEGRAM_CHAT_ID}
+    events: [down, up]
+    groups: [acme]
+
+  # ── Generic webhook (POSTs the full event payload — PagerDuty, n8n, …) ──
+  - id: webhook-pager
+    type: webhook
+    url: ${PAGER_WEBHOOK_URL}
+    method: POST               # POST (default) or PUT
+    headers:
+      X-Pulse-Source: "ci"
+    events: [down]
+    sites: [acme-api]          # only the Acme API
+    minDownMinutes: 1

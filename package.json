@@ -1,0 +1,52 @@
+{
+  "name": "blip",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Free, serverless uptime monitoring & status pages on a single Cloudflare Worker + D1. $0/month, no server to run.",
+  "license": "MIT",
+  "author": "Kazi Shiplu",
+  "homepage": "https://github.com/warlock277/blip#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/warlock277/blip.git"
+  },
+  "bugs": {
+    "url": "https://github.com/warlock277/blip/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/shared",
+    "packages/engine",
+    "packages/dashboard",
+    "packages/worker"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:cloud": "node scripts/deploy.mjs",
+    "seed": "node scripts/seed-demo.mjs",
+    "test:notify": "node scripts/test-notify.mjs",
+    "monitor": "npm run monitor --workspace @blip/engine",
+    "monitor:dry": "npm run monitor:dry --workspace @blip/engine",
+    "dev": "npm run dev --workspace @blip/dashboard",
+    "build": "npm run build --workspace @blip/dashboard",
+    "build:all": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "echo \"(configure your linter of choice)\""
+  },
+  "keywords": [
+    "uptime",
+    "monitoring",
+    "status-page",
+    "cloudflare-workers",
+    "cloudflare-d1",
+    "serverless",
+    "homelab",
+    "ssl-monitoring",
+    "incident-management"
+  ]
+}

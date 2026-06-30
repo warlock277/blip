@@ -1,0 +1,85 @@
+name: 🐛 Bug report
+description: Something isn't working the way it should.
+title: "bug: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Please fill in as much as you
+        can — a minimal reproduction makes a fix dramatically faster.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I searched [existing issues](https://github.com/warlock277/blip/issues) and this isn't a duplicate.
+          required: true
+        - label: I'm on a supported Node version (20+, ideally 22 per `.nvmrc`).
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: The monitor workflow committed an empty summary.json…
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Include the command(s) and a minimal `blip.config.yaml` snippet if relevant. **Redact all secrets.**
+      placeholder: |
+        1. Configure a site with `expectJson`…
+        2. Run `npm run monitor:dry`
+        3. See error…
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of Blip?
+      multiple: true
+      options:
+        - Monitoring engine (@blip/engine)
+        - Dashboard / status page (@blip/dashboard)
+        - GitHub Actions workflows
+        - Cloudflare Pages deploy
+        - Notifications (Telegram/Email/Discord/Slack/webhook)
+        - Setup wizard / seed script
+        - Config / docs
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / output
+      description: Paste workflow logs or engine output. **Redact tokens, chat ids, and webhook URLs.**
+      render: shell
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node version
+      placeholder: "v22.x.x (output of `node -v`)"
+
+  - type: input
+    id: environment
+    attributes:
+      label: Where did it happen?
+      placeholder: "Local dev / GitHub Actions / Cloudflare Pages"
