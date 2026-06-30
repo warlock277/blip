@@ -29,8 +29,7 @@ packages/
   shared/      @blip/shared    — TypeScript types + helpers (the contract)
   worker/      @blip/worker    — Cloudflare Worker: probes, D1 store, serves the API + SPA
   dashboard/   @blip/dashboard — React + Vite SPA, reads /data/*.json
-  engine/      @blip/engine    — legacy GitHub-Actions engine (superseded by worker)
-scripts/       setup.mjs, seed-demo.mjs
+scripts/       setup.mjs, seed-demo.mjs, deploy.mjs, test-notify.mjs
 config/        example config + permissions
 docs/          documentation
 data/          seeded demo output for local preview (generated; not edited by hand)
@@ -50,8 +49,6 @@ npm install
 npm run setup           # generate a local blip.config.yaml (optional)
 npm run seed            # realistic demo data into /data
 npm run dev             # dashboard at http://localhost:5173
-
-npm run monitor:dry     # (legacy engine) validate config against the old GitHub-Actions path
 ```
 
 ## Before you open a PR
@@ -76,9 +73,9 @@ npm run build
 - **Keep types in sync** — new/changed config fields must appear in
   `packages/shared/src/types.ts` and the example config.
 - **Never commit secrets.** No tokens, chat ids, webhook URLs, or `.env` files.
-  The `/data` directory is engine-generated — avoid hand-edited data commits.
+  The `/data` directory is seed-generated for local preview — don't hand-edit it.
 - **Conventional Commits** for messages are appreciated (e.g.
-  `feat(engine): add tcp keyword check`, `fix(dashboard): …`, `docs: …`,
+  `feat(worker): add tcp keyword check`, `fix(dashboard): …`, `docs: …`,
   `chore(deps): …`).
 
 ## Commit / branch conventions
@@ -89,11 +86,11 @@ npm run build
 ## Adding things
 
 - **A new notification channel?** Add its type to `ChannelConfig` in
-  `packages/shared/src/types.ts`, wire it into the engine, document it in
-  `docs/notifications.md` + `docs/configuration.md`, and add it to the setup
-  wizard and example config.
-- **A new check type or assertion?** Update `SiteConfig`/`CheckType`, the engine,
-  the config docs, and the example config.
+  `packages/shared/src/types.ts`, wire it into the Worker's notifier
+  (`packages/worker/src/notify.ts`), document it in `docs/notifications.md` +
+  `docs/configuration.md`, and add it to the setup wizard and example config.
+- **A new check type or assertion?** Update `SiteConfig`/`CheckType`, the Worker
+  checks (`packages/worker/src/checks.ts`), the config docs, and the example config.
 
 ## Questions?
 

@@ -6,8 +6,6 @@
 #    - stores raw history + precomputed blobs in D1 (SQLite),
 #    - serves the static dashboard AND the /data/*.json API it fetches.
 #
-#  This is an ALTERNATIVE to the GitHub-Actions engine (packages/engine).
-#
 #  -------------------------------------------------------------------------
 #  One-time setup / deploy
 #  -------------------------------------------------------------------------

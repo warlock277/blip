@@ -1,7 +1,7 @@
 /**
  * Worker-side notifications.
  *
- * Ports packages/engine/src/notify/* to run inside the Cron Worker. Events are
+ * Notification dispatch for the Cron Worker. Events are
  * produced by reconcile(); this module routes each to the matching channels,
  * applies `events`/`sites`/`groups` filters + `minDownMinutes` flap gating +
  * de-dup against `state.alerts`, and sends via the platform `fetch()`.
@@ -21,7 +21,7 @@ import type { Env } from "./env.js";
 import { alertKey, type WorkerState } from "./state.js";
 import { iso } from "./time.js";
 
-/** A transition worth notifying about. Mirrors the engine's EngineEvent. */
+/** A transition worth notifying about (down/up/degraded/ssl/domain). */
 export interface NotifyEvent {
   type: EventType;
   siteId: string;
@@ -42,7 +42,7 @@ export interface NotifyEvent {
 
 const NOTIFY_TIMEOUT_MS = 10_000;
 
-// --- message formatting (mirror engine/src/notify/format.ts) ----------------
+// --- message formatting -----------------------------------------------------
 
 const EMOJI: Record<EventType, string> = {
   down: "🔴",
@@ -192,7 +192,7 @@ async function sendChannel(
   }
 }
 
-// --- routing (mirror engine/src/notify/index.ts) ----------------------------
+// --- routing ----------------------------------------------------------------
 
 function wantsEvent(c: ChannelConfig, t: EventType): boolean {
   return !c.events || c.events.length === 0 || c.events.includes(t);

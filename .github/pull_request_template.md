@@ -28,7 +28,7 @@ Closes #
 - [ ] `npm run typecheck`
 - [ ] `npm test`
 - [ ] `npm run build`
-- [ ] Manually verified (`npm run seed && npm run dev` and/or `npm run monitor:dry`)
+- [ ] Manually verified (`npm run seed && npm run dev`)
 
 ## Checklist
 

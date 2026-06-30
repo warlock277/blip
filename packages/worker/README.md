@@ -1,8 +1,7 @@
-# @blip/worker — Cloudflare-native monitoring mode
+# @blip/worker — the Blip backend
 
-A single **Cloudflare Worker** that replaces the GitHub-Actions engine. It is an
-alternative monitoring backend for [Blip](../../README.md): instead of a CI job
-committing JSON to a repo, **one Worker** does everything.
+A single **Cloudflare Worker** is the whole backend for [Blip](../../README.md):
+instead of a server or CI job, **one Worker** does everything.
 
 ## What it does
 

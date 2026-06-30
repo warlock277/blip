@@ -1,7 +1,7 @@
 /**
  * Incident reconciliation for the Worker.
  *
- * Mirrors packages/engine/src/store/incidents.ts:
+ * Opens/resolves incidents and derives notification events on transitions:
  *   - open an incident on a transition into an unhealthy state (up→down,
  *     →degraded) or when ssl/domain becomes expiringSoon,
  *   - resolve on recovery, stamping resolvedAt + durationMs,

@@ -3,7 +3,7 @@
 #  ----------------------------------------------------------------------------
 #  This file demonstrates EVERY supported feature: all check types, all channel
 #  types, all assertion kinds, groups, and branding. Copy the bits you need into
-#  the repo-root `blip.config.yaml` (which is what the engine actually reads).
+#  the repo-root `blip.config.yaml` (embedded into the Worker at build time).
 #
 #  • Only `sites[].name` and `sites[].url` are ever required.
 #  • Secrets are referenced as ${ENV_VAR} and resolved from the environment

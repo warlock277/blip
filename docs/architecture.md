@@ -87,10 +87,6 @@ A static React + Vite + TypeScript SPA. At runtime it `fetch`es `/data/*.json`
 `packages/dashboard/dist` and bundled into the Worker as static assets — there's
 no separate hosting step.
 
-> **Legacy mode:** `packages/engine` is the original GitHub-Actions engine that
-> committed JSON into the repo. The Worker supersedes it and is the supported
-> path; the engine remains for anyone who prefers the commit-to-Git model.
-
 ## Data flow timing
 
 1. **Every 5 min:** the Worker's `scheduled()` handler probes and writes to D1.

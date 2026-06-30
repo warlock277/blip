@@ -42,7 +42,7 @@ body:
       description: Include the command(s) and a minimal `blip.config.yaml` snippet if relevant. **Redact all secrets.**
       placeholder: |
         1. Configure a site with `expectJson`…
-        2. Run `npm run monitor:dry`
+        2. Deploy and watch `npx wrangler tail`
         3. See error…
       render: shell
     validations:
@@ -54,12 +54,12 @@ body:
       label: Which part of Blip?
       multiple: true
       options:
-        - Monitoring engine (@blip/engine)
+        - Worker — checks / monitoring (@blip/worker)
+        - Worker — auth / RBAC
         - Dashboard / status page (@blip/dashboard)
-        - GitHub Actions workflows
-        - Cloudflare Pages deploy
         - Notifications (Telegram/Email/Discord/Slack/webhook)
-        - Setup wizard / seed script
+        - Deploy / wrangler / D1
+        - Setup wizard / deploy script
         - Config / docs
         - Other / not sure
     validations:
@@ -69,7 +69,7 @@ body:
     id: logs
     attributes:
       label: Relevant logs / output
-      description: Paste workflow logs or engine output. **Redact tokens, chat ids, and webhook URLs.**
+      description: Paste Worker logs (`npx wrangler tail`) or console output. **Redact tokens, chat ids, and webhook URLs.**
       render: shell
 
   - type: input
