@@ -21,7 +21,7 @@ import {
   type JsonAssertion,
   type SslInfo,
   type Status,
-} from "@pulse/shared";
+} from "@blip/shared";
 import type { ResolvedSite } from "./config-types.js";
 import { daysUntil, iso } from "./time.js";
 
@@ -465,7 +465,7 @@ export async function checkSsl(host: string, warnDays: number): Promise<SslInfo 
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(CRTSH_TIMEOUT_MS),
-      headers: { accept: "application/json", "user-agent": "Pulse/0.1 ssl-check" },
+      headers: { accept: "application/json", "user-agent": "Blip/0.1 ssl-check" },
       redirect: "follow",
     });
     if (!res.ok) return null;

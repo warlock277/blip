@@ -9,12 +9,13 @@
  *   - incidents stored newest-first,
  *   - resolved incidents older than ~90 days are pruned.
  *
- * Notifications are out of scope for this Worker (no channels), so this only
- * returns the reconciled incident list plus the mutated state.
+ * Also derives the notification events for each transition (down/up/degraded,
+ * ssl/domain threshold crossings) — these feed dispatchNotifications().
  */
 
-import type { Incident, IncidentType, SslInfo, DomainInfo, Status } from "@pulse/shared";
+import type { Incident, IncidentType, SslInfo, DomainInfo, Status } from "@blip/shared";
 import type { ResolvedSite } from "./config-types.js";
+import type { NotifyEvent } from "./notify.js";
 import { siteStateFor, type SiteState, type WorkerState } from "./state.js";
 import { elapsedMs, iso } from "./time.js";
 
@@ -38,10 +39,24 @@ export interface ReconcileInput {
 export interface ReconcileOutput {
   incidents: Incident[];
   state: WorkerState;
+  events: NotifyEvent[];
 }
 
 function newIncidentId(siteId: string, type: IncidentType, at: number): string {
   return `${siteId}-${type}-${at}`;
+}
+
+/**
+ * Drop notify de-dup entries for one (site, eventType) across every channel, so
+ * the next occurrence of that condition alerts again. Ledger keys are
+ * `channelId:siteId:eventType` (see state.alertKey).
+ */
+function clearAlertLedger(state: WorkerState, siteId: string, eventType: string): void {
+  if (!state.alerts) return;
+  const suffix = `:${siteId}:${eventType}`;
+  for (const k of Object.keys(state.alerts)) {
+    if (k.endsWith(suffix)) delete state.alerts[k];
+  }
 }
 
 function findOpen(incidents: Incident[], siteId: string, type: IncidentType): Incident | undefined {
@@ -62,6 +77,7 @@ export function reconcile(
   const nowIso = iso(now);
   const state = input.prevState;
   let incidents = prevIncidents.map((i) => ({ ...i }));
+  const events: NotifyEvent[] = [];
 
   for (const site of input.sites) {
     if (site.paused) continue;
@@ -71,6 +87,11 @@ export function reconcile(
     const ss = siteStateFor(state, site.id);
     const status = result.status;
     const curType = incidentTypeForStatus(status);
+
+    // Track the outage start up front so emitted down/degraded events carry
+    // `since` (minDownMinutes gates on it on the transition tick too).
+    if (status === "up") delete ss.downSince;
+    else if (!ss.downSince) ss.downSince = nowIso;
 
     // Resolve open availability incidents whose condition no longer holds.
     for (const t of ["down", "degraded"] as IncidentType[]) {
@@ -82,6 +103,25 @@ export function reconcile(
         open.durationMs = elapsedMs(open.startedAt, now);
         open.updates = [...(open.updates ?? []), { at: nowIso, message: "Recovered" }];
         if (ss.openIncidents) delete ss.openIncidents[t];
+        // Reset the notify de-dup for this (site, condition) across ALL channels
+        // so the NEXT occurrence alerts again (not just channels that get the up).
+        clearAlertLedger(state, site.id, t);
+        // Emit a recovery event only on full recovery to "up" from a down.
+        if (status === "up" && t === "down") {
+          events.push({
+            type: "up",
+            siteId: site.id,
+            siteName: site.name,
+            url: site.url,
+            ...(site.group ? { group: site.group } : {}),
+            status: "up",
+            detail: "Recovered",
+            ...(open.startedAt ? { since: open.startedAt } : {}),
+            ...(open.durationMs !== undefined ? { durationMs: open.durationMs } : {}),
+            ...(site.notify ? { notify: site.notify } : {}),
+            at: nowIso,
+          });
+        }
       }
     }
 
@@ -104,13 +144,22 @@ export function reconcile(
         incidents = [incident, ...incidents];
         ss.openIncidents = { ...(ss.openIncidents ?? {}), [curType]: incident.id };
       }
-    }
-
-    // Track downSince.
-    if (status === "up") {
-      delete ss.downSince;
-    } else if (!ss.downSince) {
-      ss.downSince = nowIso;
+      // Emit every tick while failing; dispatch de-dups via the ledger so the
+      // alert is sent ONCE per outage (after minDownMinutes), and re-armed by
+      // clearAlertLedger() on recovery. Emitting only on the transition tick
+      // would make minDownMinutes unsatisfiable (the alert would be dropped).
+      events.push({
+        type: curType === "down" ? "down" : "degraded",
+        siteId: site.id,
+        siteName: site.name,
+        url: site.url,
+        ...(site.group ? { group: site.group } : {}),
+        status,
+        ...(result.error ? { detail: result.error } : {}),
+        ...(ss.downSince ? { since: ss.downSince } : {}),
+        ...(site.notify ? { notify: site.notify } : {}),
+        at: nowIso,
+      });
     }
 
     // SSL / domain expiry transitions.
@@ -119,11 +168,13 @@ export function reconcile(
         kind: "ssl",
         site,
         ss,
+        events,
         nowIso,
         now,
         daysRemaining: result.ssl.daysRemaining,
         expiringSoon: result.ssl.expiringSoon,
         expiresAt: result.ssl.validTo,
+        ssl: result.ssl,
         get: () => incidents,
         set: (next) => (incidents = next),
       });
@@ -133,11 +184,13 @@ export function reconcile(
         kind: "domain",
         site,
         ss,
+        events,
         nowIso,
         now,
         daysRemaining: result.domain.daysRemaining,
         expiringSoon: result.domain.expiringSoon,
         expiresAt: result.domain.expiresAt,
+        domain: result.domain,
         get: () => incidents,
         set: (next) => (incidents = next),
       });
@@ -148,18 +201,21 @@ export function reconcile(
 
   incidents = pruneIncidents(incidents, now);
   state.updatedAt = nowIso;
-  return { incidents, state };
+  return { incidents, state, events };
 }
 
 interface ExpiryArgs {
   kind: "ssl" | "domain";
   site: ResolvedSite;
   ss: SiteState;
+  events: NotifyEvent[];
   nowIso: string;
   now: number;
   daysRemaining: number;
   expiringSoon: boolean;
   expiresAt: string;
+  ssl?: SslInfo;
+  domain?: DomainInfo;
   get: () => Incident[];
   set: (next: Incident[]) => void;
 }
@@ -187,9 +243,22 @@ function reconcileExpiry(args: ExpiryArgs): void {
       args.set([incident, ...args.get()]);
       args.ss.openIncidents = { ...(args.ss.openIncidents ?? {}), [incidentType]: incident.id };
     }
+    // Emit an alert only when crossing into a tighter window than last alerted.
     const warnedKey = args.kind === "ssl" ? "sslWarnedDay" : "domainWarnedDay";
     const lastWarned = args.ss[warnedKey];
     if (lastWarned === undefined || args.daysRemaining < lastWarned) {
+      args.events.push({
+        type: args.kind === "ssl" ? "ssl" : "domain",
+        siteId: args.site.id,
+        siteName: args.site.name,
+        url: args.site.url,
+        ...(args.site.group ? { group: args.site.group } : {}),
+        detail: `${args.kind === "ssl" ? "TLS certificate" : "Domain"} expires in ${args.daysRemaining} days`,
+        ...(args.ssl ? { ssl: args.ssl } : {}),
+        ...(args.domain ? { domain: args.domain } : {}),
+        ...(args.site.notify ? { notify: args.site.notify } : {}),
+        at: args.nowIso,
+      });
       args.ss[warnedKey] = args.daysRemaining;
     }
   } else {

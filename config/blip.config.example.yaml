@@ -1,9 +1,9 @@
 # ============================================================================
-#  Pulse — FULL configuration reference
+#  Blip — FULL configuration reference
 #  ----------------------------------------------------------------------------
 #  This file demonstrates EVERY supported feature: all check types, all channel
 #  types, all assertion kinds, groups, and branding. Copy the bits you need into
-#  the repo-root `pulse.config.yaml` (which is what the engine actually reads).
+#  the repo-root `blip.config.yaml` (which is what the engine actually reads).
 #
 #  • Only `sites[].name` and `sites[].url` are ever required.
 #  • Secrets are referenced as ${ENV_VAR} and resolved from the environment
@@ -21,7 +21,7 @@ version: 1
 #  brand — appearance of the dashboard + public status page
 # ════════════════════════════════════════════════════════════════════════════
 brand:
-  name: Pulse                                   # shown in the header
+  name: Blip                                   # shown in the header
   tagline: Real-time status for everything we run.
   primaryColor: "#22c55e"                       # hex accent colour
   logoUrl: https://example.com/logo.svg         # optional; header logo
@@ -39,7 +39,7 @@ defaults:
   maxHistoryPoints: 2016      # raw points kept per site (~7 days @ 5-min); older data rolls up daily
   sslWarnDays: 30             # warn when a cert expires within N days
   domainWarnDays: [30, 15, 7] # warn at each domain-expiry threshold
-  userAgent: "Pulse/0.1 (+https://github.com/pulse/pulse)"  # UA for HTTP checks
+  userAgent: "Blip/0.1 (+https://github.com/warlock277/blip)"  # UA for HTTP checks
 
 # ════════════════════════════════════════════════════════════════════════════
 #  groups — tenants / products / regions. Used for scoping permissions and the
@@ -179,7 +179,7 @@ channels:
   - id: email-ops
     type: email
     apiKey: ${RESEND_API_KEY}
-    from: "Pulse <alerts@example.com>"
+    from: "Blip <alerts@example.com>"
     to: ["ops@example.com", "oncall@example.com"]
     events: [down, up, ssl, domain]
     minDownMinutes: 5          # ignore blips shorter than 5 minutes
@@ -212,7 +212,7 @@ channels:
     url: ${PAGER_WEBHOOK_URL}
     method: POST               # POST (default) or PUT
     headers:
-      X-Pulse-Source: "ci"
+      X-Blip-Source: "ci"
     events: [down]
     sites: [acme-api]          # only the Acme API
     minDownMinutes: 1

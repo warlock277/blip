@@ -1,9 +1,9 @@
 /**
- * Worker-side access control for Pulse.
+ * Worker-side access control for Blip.
  *
  * - Authentication: a password (per principal) is checked against the Worker
- *   secret PULSE_PW_<ID>. On match we issue an HMAC-signed, HttpOnly session
- *   cookie (signed with PULSE_SESSION_SECRET).
+ *   secret BLIP_PW_<ID>. On match we issue an HMAC-signed, HttpOnly session
+ *   cookie (signed with BLIP_SESSION_SECRET).
  * - Authorization (RBAC): SUPER_ADMIN/ADMIN see everything; CLIENT/VIEWER are
  *   scoped to their groups/sites. Anonymous viewers (when publicStatusPage is
  *   on) see only public sites. ALL filtering happens server-side here.
@@ -11,18 +11,17 @@
 
 import {
   overallStatus,
-  STATUS_WEIGHT,
   type GroupSummary,
   type Incident,
   type OverallStatus,
   type Role,
   type Summary,
   type SummaryTotals,
-} from "@pulse/shared";
+} from "@blip/shared";
 import type { AccessConfig, Principal } from "./config-types.js";
 import type { Env } from "./env.js";
 
-const COOKIE_NAME = "pulse_session";
+const COOKIE_NAME = "blip_session";
 const SESSION_TTL_SEC = 12 * 60 * 60; // 12h
 
 export interface Session {
@@ -121,7 +120,7 @@ function readCookie(request: Request, name: string): string | null {
 }
 
 export async function getSession(request: Request, env: Env): Promise<Session | null> {
-  const secret = env.PULSE_SESSION_SECRET;
+  const secret = env.BLIP_SESSION_SECRET;
   if (!secret) return null;
   const token = readCookie(request, COOKIE_NAME);
   if (!token) return null;
@@ -148,7 +147,7 @@ export function clearCookie(): string {
 // ---------------------------------------------------------------------------
 
 function passwordEnvKey(principalId: string): string {
-  return `PULSE_PW_${principalId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
+  return `BLIP_PW_${principalId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
 }
 
 const ENV_REF = /^\$\{([A-Z0-9_]+)\}$/;
@@ -157,7 +156,7 @@ const ENV_REF = /^\$\{([A-Z0-9_]+)\}$/;
  * Resolve a principal's expected password. Order:
  *   1. config `password: ${ENV_VAR}` → env[ENV_VAR]
  *   2. config `password: "literal"`  → the literal
- *   3. no config password            → env PULSE_PW_<ID>
+ *   3. no config password            → env BLIP_PW_<ID>
  * Returns undefined when no password is configured (principal can't log in).
  */
 function resolvePassword(p: Principal, env: Env): string | undefined {
@@ -190,7 +189,7 @@ export function matchPrincipal(
 }
 
 export async function loginResponse(principal: Principal, env: Env): Promise<Response> {
-  const secret = env.PULSE_SESSION_SECRET;
+  const secret = env.BLIP_SESSION_SECRET;
   if (!secret) return jsonAuth({ authenticated: false, error: "server misconfigured" }, 500);
   const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SEC;
   const session: Session = {
@@ -265,10 +264,10 @@ export function filterSummary(summary: Summary, scope: Scope): Summary {
     down: active.filter((s) => s.status === "down").length,
     degraded: active.filter((s) => s.status === "degraded").length,
     paused: sites.filter((s) => s.paused).length,
+    // Mean of each site's rolling 24h uptime — must match buildSummary so the
+    // headline number is identical for a scoped viewer and an admin.
     uptime:
-      active.length === 0
-        ? 1
-        : active.reduce((a, s) => a + (STATUS_WEIGHT[s.status] ?? 0), 0) / active.length,
+      active.length === 0 ? 1 : active.reduce((a, s) => a + s.uptime24h, 0) / active.length,
   };
   const groups: GroupSummary[] = summary.groups
     .map((g) => {

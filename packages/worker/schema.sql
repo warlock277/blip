@@ -1,5 +1,5 @@
 -- ============================================================================
---  Pulse Worker — D1 (SQLite) schema
+--  Blip Worker — D1 (SQLite) schema
 --
 --  Two tables:
 --    points : raw history, one row per check per site (t = epoch ms).
@@ -8,7 +8,7 @@
 --             blob:history:<id>, blob:incidents).
 --
 --  Apply with:  npm run db:schema
---  (remote:     wrangler d1 execute pulse-db --remote --file=schema.sql)
+--  (remote:     wrangler d1 execute blip-db --remote --file=schema.sql)
 -- ============================================================================
 
 -- Raw history points. One row per (site, check).

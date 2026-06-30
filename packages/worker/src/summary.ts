@@ -2,7 +2,7 @@
  * Summary + per-site history builders.
  *
  * Produce byte-shape-compatible `SiteHistory` and `Summary` documents (see
- * @pulse/shared) from the D1 `points` table + the cached SSL/domain/status in
+ * @blip/shared) from the D1 `points` table + the cached SSL/domain/status in
  * `state`, so the existing dashboard renders unchanged.
  */
 
@@ -16,7 +16,7 @@ import {
   type Status,
   type Summary,
   type SummaryTotals,
-} from "@pulse/shared";
+} from "@blip/shared";
 import type { ResolvedConfig, ResolvedSite } from "./config-types.js";
 import type { WorkerState } from "./state.js";
 import {

@@ -1,5 +1,5 @@
 /**
- * Pulse Worker entry point.
+ * Blip Worker entry point.
  *
  *   scheduled(): runs every cron tick — probes each site, appends raw points to
  *     D1, refreshes the slow SSL/domain probes infrequently, reconciles
@@ -10,7 +10,7 @@
  *     from the static dashboard assets (SPA fallback handled by assets config).
  */
 
-import type { Incident, Summary } from "@pulse/shared";
+import type { Incident, Summary } from "@blip/shared";
 import { CONFIG } from "./config.js";
 import {
   clearCookie,
@@ -35,6 +35,7 @@ import {
 } from "./checks.js";
 import type { Env } from "./env.js";
 import { reconcile, type SiteResult } from "./incidents.js";
+import { dispatchNotifications } from "./notify.js";
 import { EMPTY_STATE, siteStateFor, type WorkerState } from "./state.js";
 import { appendPoint, getKv, prunePoints, setKv } from "./store.js";
 import { buildSiteHistory, buildSummary } from "./summary.js";
@@ -77,8 +78,13 @@ async function runChecks(env: Env, now: number): Promise<void> {
   // 1. Load cross-run state.
   const loaded = await getKv<WorkerState>(db, "state");
   const state: WorkerState = loaded
-    ? { version: loaded.version ?? 1, sites: loaded.sites ?? {}, ...(loaded.updatedAt ? { updatedAt: loaded.updatedAt } : {}) }
-    : { ...EMPTY_STATE, sites: {} };
+    ? {
+        version: loaded.version ?? 1,
+        sites: loaded.sites ?? {},
+        alerts: loaded.alerts ?? {},
+        ...(loaded.updatedAt ? { updatedAt: loaded.updatedAt } : {}),
+      }
+    : { ...EMPTY_STATE, sites: {}, alerts: {} };
 
   const results = new Map<string, SiteResult>();
 
@@ -170,15 +176,21 @@ async function runChecks(env: Env, now: number): Promise<void> {
   // 3. Prune raw points older than 90 days.
   await prunePoints(db, now - POINTS_RETENTION_MS);
 
-  // 4. Reconcile incidents.
+  // 4. Reconcile incidents (also derives the notification events).
   const prevIncidents = (await getKv<Incident[]>(db, "incidents")) ?? [];
-  const { incidents, state: nextState } = reconcile(prevIncidents, {
+  const { incidents, state: nextState, events } = reconcile(prevIncidents, {
     prevState: state,
     results,
     sites: [...config.sites],
     now,
   });
   await setKv(db, "incidents", incidents);
+
+  // 4b. Send notifications for this tick's transitions. Mutates nextState.alerts
+  // for de-dup; never throws (each channel send is caught), so a failing channel
+  // can't abort the blob writes below.
+  const sent = await dispatchNotifications(events, config.channels, nextState, env, now);
+  if (sent > 0) console.log(`notify: sent ${sent} alert(s) across ${events.length} event(s)`);
 
   // 5. Build precomputed blobs.
   const summary = await buildSummary(db, config, nextState, incidents, now);

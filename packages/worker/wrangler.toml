@@ -1,5 +1,5 @@
 # ============================================================================
-#  Pulse Worker — Cloudflare-native monitoring mode
+#  Blip Worker — Cloudflare-native monitoring mode
 #
 #  ONE Cloudflare Worker that:
 #    - runs site checks on a Cron Trigger (every 5 minutes),
@@ -12,16 +12,16 @@
 #  One-time setup / deploy
 #  -------------------------------------------------------------------------
 #    1. Create the D1 database:
-#         npx wrangler d1 create pulse-db
+#         npx wrangler d1 create blip-db
 #       Copy the printed `database_id` into the [[d1_databases]] block below
 #       (replace PLACEHOLDER_SET_AT_DEPLOY).
 #
 #    2. Apply the schema (creates the `points` + `kv` tables):
 #         npm run db:schema
-#       (remote: append --remote, e.g. `wrangler d1 execute pulse-db --remote --file=schema.sql`)
+#       (remote: append --remote, e.g. `wrangler d1 execute blip-db --remote --file=schema.sql`)
 #
 #    3. Build the dashboard so its static assets exist at ../dashboard/dist:
-#         npm run build --workspace @pulse/dashboard
+#         npm run build --workspace @blip/dashboard
 #
 #    4. Generate the embedded config + deploy:
 #         npm run deploy        # runs gen-config then `wrangler deploy`
@@ -30,7 +30,7 @@
 #  /data/incidents.json — all served from D1 by this same Worker.
 # ============================================================================
 
-name = "pulse-worker"
+name = "blip-worker"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 # nodejs_compat is required for any node-style globals the bundle may touch and
@@ -39,22 +39,23 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 # Custom domain — Cloudflare creates/owns the DNS record + cert pointing the
-# hostname at this Worker (requires no conflicting `pulse` CNAME to pre-exist).
+# hostname at this Worker (requires no conflicting `blip` CNAME to pre-exist).
 routes = [
-  { pattern = "pulse.akashghuri.xyz", custom_domain = true }
+  # Patched at deploy time by `npm run deploy:cloud` (or edit by hand).
+  { pattern = "status.example.com", custom_domain = true }
 ]
 
 # Run the checks every 5 minutes.
 [triggers]
 crons = ["*/5 * * * *"]
 
-# D1 binding. `database_id` MUST be filled in after `wrangler d1 create pulse-db`
+# D1 binding. `database_id` MUST be filled in after `wrangler d1 create blip-db`
 # (step 1 above). The placeholder is intentionally invalid so a deploy without
 # it fails loudly instead of writing to the wrong database.
 [[d1_databases]]
 binding = "DB"
-database_name = "pulse-db"
-database_id = "9bae211a-ab49-47ee-8b15-13a1259a1391"
+database_name = "blip-db"
+database_id = "PLACEHOLDER_SET_AT_DEPLOY"
 
 # Static dashboard assets. The dashboard is a built SPA; unknown routes fall
 # back to index.html so client-side routing works. The Worker's own fetch()

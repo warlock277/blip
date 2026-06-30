@@ -8,16 +8,17 @@
 
 import type {
   BrandConfig,
+  ChannelConfig,
   CheckType,
   EngineDefaults,
   GroupConfig,
   Role,
   SiteConfig,
-} from "@pulse/shared";
+} from "@blip/shared";
 
 /**
  * A login principal. The password is NOT embedded — it is read at runtime from
- * the Worker secret `PULSE_PW_<ID>` (uppercased id). Scope (groups/sites) only
+ * the Worker secret `BLIP_PW_<ID>` (uppercased id). Scope (groups/sites) only
  * applies to CLIENT/VIEWER; SUPER_ADMIN/ADMIN always see everything.
  */
 export interface Principal {
@@ -30,7 +31,7 @@ export interface Principal {
    * Optional password spec. Resolution order (first that yields a value wins):
    *   1. an `${ENV_VAR}` reference here  → read from the Worker env at runtime
    *   2. a literal string here           → used as-is (plaintext, lives in repo)
-   *   3. (this field absent)             → the `PULSE_PW_<ID>` Worker secret
+   *   3. (this field absent)             → the `BLIP_PW_<ID>` Worker secret
    */
   password?: string;
 }
@@ -63,4 +64,6 @@ export interface ResolvedConfig {
   groups: GroupConfig[];
   sites: ResolvedSite[];
   access: AccessConfig;
+  /** Notification channels. Secrets stay as `${ENV_VAR}` refs, resolved at runtime. */
+  channels: ChannelConfig[];
 }

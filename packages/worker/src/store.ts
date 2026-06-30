@@ -9,7 +9,7 @@
  * inside it. Computed in JS from fetched rows.
  */
 
-import { STATUS_WEIGHT, type DailyRollup, type HistoryPoint, type Status } from "@pulse/shared";
+import { STATUS_WEIGHT, type DailyRollup, type HistoryPoint, type Status } from "@blip/shared";
 import { dayKey, MS_PER_DAY } from "./time.js";
 
 /** Raw point passed to appendPoint (epoch-ms timestamped, D1-row shaped). */

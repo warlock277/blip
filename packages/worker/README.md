@@ -1,7 +1,7 @@
-# @pulse/worker — Cloudflare-native monitoring mode
+# @blip/worker — Cloudflare-native monitoring mode
 
 A single **Cloudflare Worker** that replaces the GitHub-Actions engine. It is an
-alternative monitoring backend for [Pulse](../../README.md): instead of a CI job
+alternative monitoring backend for [Blip](../../README.md): instead of a CI job
 committing JSON to a repo, **one Worker** does everything.
 
 ## What it does
@@ -23,11 +23,11 @@ committing JSON to a repo, **one Worker** does everything.
                  └───────────────────────────────────────────────────────────────────┘
                                    │
                                    ▼
-                              D1 (pulse-db): points + kv
+                              D1 (blip-db): points + kv
 ```
 
 The output of `/data/summary.json`, `/data/history/<id>.json` and
-`/data/incidents.json` is byte-shape-compatible with `@pulse/shared`'s `Summary`,
+`/data/incidents.json` is byte-shape-compatible with `@blip/shared`'s `Summary`,
 `SiteHistory` and `Incident[]`, so the existing dashboard renders unchanged.
 
 ## Setup & deploy
@@ -35,15 +35,15 @@ The output of `/data/summary.json`, `/data/history/<id>.json` and
 ```bash
 # 1. Create the D1 database, then paste the printed id into wrangler.toml
 #    ([[d1_databases]].database_id, replacing PLACEHOLDER_SET_AT_DEPLOY).
-npx wrangler d1 create pulse-db
+npx wrangler d1 create blip-db
 
 # 2. Apply the schema (creates points + kv).
 npm run db:schema            # add --remote for the production DB
 
 # 3. Build the dashboard so its static assets exist at ../dashboard/dist.
-npm run build --workspace @pulse/dashboard
+npm run build --workspace @blip/dashboard
 
-# 4. Generate the embedded config from ../../pulse.config.yaml, then deploy.
+# 4. Generate the embedded config from ../../blip.config.yaml, then deploy.
 npm run deploy               # = gen-config + wrangler deploy
 ```
 
@@ -51,7 +51,7 @@ Local development: `npm run dev` (runs `gen-config` then `wrangler dev`).
 
 ### Config embedding
 
-The Worker has no filesystem, so `pulse.config.yaml` cannot be read at runtime.
+The Worker has no filesystem, so `blip.config.yaml` cannot be read at runtime.
 `scripts/gen-config.mjs` parses it at build time, applies `DEFAULTS`, derives
 site ids, normalizes `ssl`/`domain` to concrete warn windows, and writes
 `src/config.generated.ts`. That file is **generated** (gitignored) and rebuilt by
